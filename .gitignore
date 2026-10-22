@@ -1,0 +1,17 @@
+/_build/
+/.mooncakes/
+/.local/
+/.scratch/
+/target/
+*.zip
+*申报*
+*审查报告*
+*审计报告*
+*验收报告*
+*自查报告*
+*AI辅助*
+*ai辅助*
+*汇总报告*
+*总结报告*
+/reports/
+/local-materials/
