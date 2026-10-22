@@ -90,6 +90,11 @@ fn csv_values(
 
 ///|
 pub fn DataMessage::encode_csv2(self : DataMessage) -> String raise SdmxError {
+  if !self.notes.is_empty() {
+    raise Unsupported(
+      feature="CSV profile cannot preserve annotations; call without_annotations explicitly",
+    )
+  }
   if self.dataset.rows.is_empty() &&
     (
       !(self.kind is Datastructure) ||

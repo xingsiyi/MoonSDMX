@@ -36,6 +36,8 @@ pub struct DataMessage {
   kind : ExchangeKind
   reference : StructureRef
   dataset : Dataset
+  notes : Array[Annotation]
+  row_notes : Map[String, Array[Int32]]
 } derive(@debug.Debug)
 
 ///|
@@ -53,7 +55,7 @@ pub fn DataMessage::new(
       reason="DSD reference does not match structure",
     )
   }
-  { kind, reference, dataset, }
+  { kind, reference, dataset, notes: [], row_notes: Map([]), }
 }
 
 ///|
