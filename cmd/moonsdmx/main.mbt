@@ -9,6 +9,9 @@ fn read_input(path : String) -> String raise {
 
 ///|
 fn usage() -> Unit {
+  println(
+    "Append --output NEW_PATH for exact UTF-8 file output (existing paths refused).",
+  )
   println("moonsdmx json2csv [--drop-annotations] MESSAGE.json")
   println("moonsdmx extract-structure MESSAGE.json")
   println("moonsdmx validate-csv STRUCTURE.json DATA.csv")
@@ -18,7 +21,21 @@ fn usage() -> Unit {
 }
 
 ///|
-fn run(args : Array[String]) -> Unit raise {
+fn run(original : Array[String]) -> Unit raise {
+  let size = original.length()
+  let destination = if size >= 4 && original[size - 2] == "--output" {
+    Some(original[size - 1])
+  } else {
+    None
+  }
+  let args = if destination is Some(_) {
+    original[:size - 2].to_owned()
+  } else {
+    original
+  }
+  if destination is Some(path) && @fs.path_exists(path) {
+    raise @sdmx.Conflict(key=path, reason="output already exists")
+  }
   if args.length() < 2 {
     usage()
     @sys.exit(2)
@@ -61,8 +78,20 @@ fn run(args : Array[String]) -> Unit raise {
       return
     }
   }
-  // Build the whole result before writing stdout; this command never writes a file.
-  println(output)
+  // Exact file output avoids Windows console text-mode newline translation.
+  match destination {
+    Some(path) => @fs.write_string_to_file(path, output)
+    None => {
+      let display = output.replace(old="\r\n", new="\n")
+      println(
+        if display.has_suffix("\n") {
+          display[:display.length() - 1].to_owned()
+        } else {
+          display
+        },
+      )
+    }
+  }
 }
 
 ///|
