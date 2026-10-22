@@ -1,4 +1,19 @@
 ///|
+fn json_identifier(value : String, component : Bool) -> Unit raise SdmxError {
+  if value.is_empty() || value.length() > 128 {
+    raise Unsupported(feature="JSON2 identifier length")
+  }
+  for i, ch in value.to_array() {
+    let letter = (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')
+    let ordinary = letter || (ch >= '0' && ch <= '9') || ch == '_' || ch == '-'
+    if (component && i == 0 && !letter) ||
+      (!ordinary && (component || (ch != '@' && ch != '$'))) {
+      raise Unsupported(feature="identifier outside JSON2 grammar: \{value}")
+    }
+  }
+}
+
+///|
 fn utc_timestamp(text : String) -> Unit raise SdmxError {
   if text.length() != 20 ||
     text[10] != 'T' ||
@@ -112,10 +127,18 @@ pub fn DataMessage::encode_json2(
   sender~ : String,
   prepared~ : String,
 ) -> String raise SdmxError {
-  identifier(id, "message.id")
-  identifier(sender, "sender.id")
+  json_identifier(id, false)
+  json_identifier(sender, false)
   utc_timestamp(prepared)
   let structure = self.dataset.structure
+  for component in structure.components() {
+    json_identifier(component.id, true)
+    if component.representation is Coded(codes) {
+      for pair in codes.entries() {
+        json_identifier(pair.0, false)
+      }
+    }
+  }
   let dimension_indexes : Array[Map[String, Int32]] = []
   let dimensions : Array[Json] = []
   for position, component in structure.dimensions {
@@ -125,12 +148,18 @@ pub fn DataMessage::encode_json2(
       _ => self.dataset.dimension_values(component.id).map(code => (code, code))
     }
     let values : Array[Json] = entries.map(pair => {
-      "id": pair.0,
-      "name": if pair.1.is_empty() {
-        pair.0
-      } else {
-        pair.1
-      },
+      match component.representation {
+        Coded(_) =>
+          {
+            "id": pair.0,
+            "name": if pair.1.is_empty() {
+              pair.0
+            } else {
+              pair.1
+            },
+          }
+        _ => { "value": pair.0 }
+      }
     })
     object["values"] = Json::array(values)
     object["keyPosition"] = Json::number(position.to_double())
@@ -201,6 +230,7 @@ pub fn DataMessage::encode_json2(
       "dataSets": [
         {
           "structure": 0,
+          "links": [{ "urn": urn, "rel": relation }],
           "action": "Information",
           "observations": Json::object(observations),
         },

@@ -35,3 +35,23 @@ test "JSON2 writer roundtrips exact values and attachment meaning" {
   }
   assert_true(bad)
 }
+
+///|
+test "uncoded dimension text uses value rather than coded id" {
+  let s = example_structure()
+  let message = DataMessage::new(
+    Datastructure,
+    s.reference(),
+    Dataset::new(s, [metric_row(s, "north, west", "2026", Some("1"), "x")]),
+  )
+  let text = message.encode_json2(
+    id="text",
+    sender="DEMO",
+    prepared="2026-10-22T00:00:00Z",
+  )
+  assert_true(text.contains("\"value\":\"north, west\""))
+  assert_eq(
+    decode_json2(text, expected=Some(s)).dataset().observations()[0].key()[0],
+    "north, west",
+  )
+}
