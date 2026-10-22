@@ -165,6 +165,18 @@ pub fn DecimalValue::compare_value(
   self : DecimalValue,
   other : DecimalValue,
 ) -> Int32 {
+  if self.coefficient == 0L {
+    return if other.coefficient == 0L {
+      0
+    } else if other.coefficient > 0L {
+      -1
+    } else {
+      1
+    }
+  }
+  if other.coefficient == 0L {
+    return if self.coefficient > 0L { 1 } else { -1 }
+  }
   if self.coefficient < 0L && other.coefficient >= 0L {
     return -1
   }

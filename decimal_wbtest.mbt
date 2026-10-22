@@ -17,6 +17,26 @@ test "decimal preserves exact values and exponents" {
 }
 
 ///|
+test "decimal ordering agrees with independent scaled integer oracle" {
+  for a = -20; a <= 20; a = a + 1 {
+    for b = -20; b <= 20; b = b + 1 {
+      for scale = 0; scale <= 3; scale = scale + 1 {
+        let x = normalized_decimal(a.to_int64(), scale)
+        let y = normalized_decimal(b.to_int64(), 0)
+        let mut factor = 1L
+        for i = 0; i < scale; i = i + 1 {
+          factor *= 10L
+        }
+        assert_eq(
+          x.compare_value(y),
+          a.to_int64().compare(b.to_int64() * factor),
+        )
+      }
+    }
+  }
+}
+
+///|
 test "decimal rejects overflow and invalid input" {
   for
     value in [
