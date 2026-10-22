@@ -194,7 +194,13 @@ fn json_wire_component(
       })
       // This is a message vocabulary, not a claim about a registry's full DSD.
       let vocabulary = CodeList::new(id, entries, limits~)
-      if !(actual_role is TimeDimension) && representation is Text {
+      let coded = array.all(v => j_object(v, "component value").contains("id"))
+      if !coded && array.any(v => j_object(v, "component value").contains("id")) {
+        raise Unsupported(
+          feature="mixed coded and uncoded component dictionary",
+        )
+      }
+      if coded && !(actual_role is TimeDimension) && representation is Text {
         representation = Coded(vocabulary)
       }
       Some(entries.map(pair => pair.0))

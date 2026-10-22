@@ -54,4 +54,13 @@ test "uncoded dimension text uses value rather than coded id" {
     decode_json2(text, expected=Some(s)).dataset().observations()[0].key()[0],
     "north, west",
   )
+  let twice = decode_json2(text).encode_json2(
+    id="again",
+    sender="DEMO",
+    prepared="2026-10-22T00:00:00Z",
+  )
+  assert_eq(
+    decode_json2(twice).dataset().observations()[0].key()[0],
+    "north, west",
+  )
 }
