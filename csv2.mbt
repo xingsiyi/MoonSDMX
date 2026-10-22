@@ -87,3 +87,36 @@ fn csv_values(
     }
   })
 }
+
+///|
+pub fn DataMessage::encode_csv2(self : DataMessage) -> String raise SdmxError {
+  if self.dataset.rows.is_empty() &&
+    (
+      !(self.kind is Datastructure) ||
+      self.reference != self.dataset.structure.reference
+    ) {
+    raise Unsupported(
+      feature="CSV cannot preserve source reference of a header-only dataflow",
+    )
+  }
+  let components = self.dataset.structure.components()
+  let header = ["STRUCTURE", "STRUCTURE_ID", "ACTION"]
+  for component in components {
+    header.push(component.id)
+  }
+  let records = [header]
+  for row in self.dataset.rows {
+    let record = [self.kind.format(), self.reference.format(), "I"]
+    for value in row.key {
+      record.push(value)
+    }
+    for value in row.measures {
+      record.push(value.unwrap_or(""))
+    }
+    for value in row.attributes {
+      record.push(value.unwrap_or(""))
+    }
+    records.push(record)
+  }
+  csv_document(records, self.dataset.structure.limits)
+}

@@ -28,3 +28,27 @@ test "CSV2 rejects mutation actions and mismatched DSD" {
     assert_true(failed)
   }
 }
+
+///|
+test "CSV2 writer preserves source scope exact text and quality metadata" {
+  let s = example_structure()
+  let row = Observation::new(s, ["north,west", "2026-Q1"], [Some("1.2300")], [
+    Some("kWh"),
+    Some("estimated \"x\""),
+  ])
+  let message = DataMessage::new(
+    Dataflow,
+    StructureRef::new("DEMO", "FLOW", "1.0"),
+    Dataset::new(s, [row]),
+  )
+  let text = message.encode_csv2()
+  let restored = decode_csv2(s, text)
+  assert_eq(restored.kind(), Dataflow)
+  assert_eq(restored.reference(), message.reference())
+  assert_eq(restored.dataset().observations(), [row])
+  assert_true(
+    text.has_prefix(
+      "STRUCTURE,STRUCTURE_ID,ACTION,REGION,TIME_PERIOD,OBS_VALUE,UNIT,STATUS\r\n",
+    ),
+  )
+}
