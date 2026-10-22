@@ -58,6 +58,22 @@ fn run(args : Array[String]) -> Unit raise {
 ///|
 fn main {
   run(@env.args()) catch {
+    @sdmx.Invalid(path~, reason~) => {
+      println("ERROR: \{path}: \{reason}")
+      @sys.exit(1)
+    }
+    @sdmx.Limit(resource~, maximum~) => {
+      println("ERROR: \{resource}: limit \{maximum} exceeded")
+      @sys.exit(1)
+    }
+    @sdmx.Unsupported(feature~) => {
+      println("ERROR: unsupported profile: \{feature}")
+      @sys.exit(1)
+    }
+    @sdmx.Conflict(key~, reason~) => {
+      println("ERROR: \{key}: \{reason}")
+      @sys.exit(1)
+    }
     error => {
       println("ERROR: \{error.to_string()}")
       @sys.exit(1)
