@@ -165,14 +165,30 @@ pub fn DataMessage::encode_json2(
         wire_indexed_value(component, row.attributes[i], attribute_indexes[i]),
       )
     }
+    for index in self.row_notes.get(row.key_token()).unwrap_or([]) {
+      tuple.push(Json::number(index.to_double()))
+    }
     observations[key] = Json::array(tuple)
   }
   let (class_name, relation) = match self.kind {
     Dataflow => ("datastructure.Dataflow", "dataflow")
     Datastructure => ("datastructure.DataStructure", "datastructure")
-    Dataprovision => ("registry.ProvisionAgreement", "dataprovision")
+    Dataprovision =>
+      ("provisionagreement.ProvisionAgreement", "provisionagreement")
   }
   let urn = "urn:sdmx:org.sdmx.infomodel.\{class_name}=\{self.reference.format()}"
+  let annotation_values : Array[Json] = self.notes.map(note => {
+    parse_bounded_json(note.content, structure.limits)
+  })
+  let embedded : Map[String, Json] = Map([
+    ("links", Json::array([{ "urn": urn, "rel": relation }])),
+    ("dimensions", { "observation": dimensions }),
+    ("measures", { "observation": measures }),
+    ("attributes", { "observation": attributes }),
+  ])
+  if !annotation_values.is_empty() {
+    embedded["annotations"] = Json::array(annotation_values)
+  }
   let document : Json = {
     "meta": {
       "schema": "https://json.sdmx.org/2.0.0/sdmx-json-data-schema.json",
@@ -181,14 +197,7 @@ pub fn DataMessage::encode_json2(
       "prepared": prepared,
     },
     "data": {
-      "structures": [
-        {
-          "links": [{ "urn": urn, "rel": relation }],
-          "dimensions": { "observation": dimensions },
-          "measures": { "observation": measures },
-          "attributes": { "observation": attributes },
-        },
-      ],
+      "structures": [Json::object(embedded)],
       "dataSets": [
         {
           "structure": 0,

@@ -17,6 +17,7 @@ priv struct JsonLayout {
   dataset_attributes : Array[WireComponent]
   series_attributes : Array[WireComponent]
   observation_attributes : Array[WireComponent]
+  notes : Array[Annotation]
 }
 
 ///|
@@ -222,7 +223,10 @@ fn json_exchange_reference(
   let prefixes = [
     ("urn:sdmx:org.sdmx.infomodel.datastructure.DataStructure=", Datastructure),
     ("urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=", Dataflow),
-    ("urn:sdmx:org.sdmx.infomodel.registry.ProvisionAgreement=", Dataprovision),
+    (
+      "urn:sdmx:org.sdmx.infomodel.provisionagreement.ProvisionAgreement=",
+      Dataprovision,
+    ),
   ]
   for (prefix, kind) in prefixes {
     if urn.has_prefix(prefix) {
@@ -239,10 +243,14 @@ fn json_layout(
   limits : Limits,
 ) -> JsonLayout raise SdmxError {
   let object = j_object(value, "structure")
-  if object.get("annotations") is Some(value) &&
-    !j_array(value, "annotations").is_empty() {
-    raise Unsupported(feature="annotations")
+  let note_values = json_level(object, "annotations")
+  if note_values.length() > limits.max_codes {
+    raise Limit(resource="annotations", maximum=limits.max_codes)
   }
+  let notes = note_values.map(value => {
+    ignore(j_object(value, "annotation"))
+    { content: canonical_json(value, limits), }
+  })
   let (kind, reference) = json_exchange_reference(object)
   let dimension_object = j_object(
     j_required(object, "dimensions"),
@@ -357,5 +365,6 @@ fn json_layout(
     dataset_attributes,
     series_attributes,
     observation_attributes,
+    notes,
   }
 }

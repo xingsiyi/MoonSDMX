@@ -84,15 +84,45 @@ fn json_attribute_values(
 }
 
 ///|
-fn json_no_annotations(object : Map[String, Json]) -> Unit raise SdmxError {
-  if object.get("annotations") is Some(value) &&
-    !j_array(value, "annotations").is_empty() {
-    raise Unsupported(feature="annotations")
-  }
+fn json_note_indices(
+  object : Map[String, Json],
+  notes : Array[Annotation],
+) -> Array[Int32] raise SdmxError {
   if object.get("dimensionGroupAttributes") is Some(value) &&
     !j_object(value, "dimensionGroupAttributes").is_empty() {
     raise Unsupported(feature="dimensionGroupAttributes")
   }
+  let values = json_level(object, "annotations")
+  if values.length() > 1024 {
+    raise Limit(resource="annotation references", maximum=1024)
+  }
+  values.map(value => {
+    if notes.is_empty() {
+      raise Invalid(path="annotation index", reason="no annotation dictionary")
+    }
+    j_int(value, "annotation index", notes.length() - 1)
+  })
+}
+
+///|
+fn merge_note_indices(
+  left : Array[Int32],
+  right : Array[Int32],
+) -> Array[Int32] raise SdmxError {
+  let result : Array[Int32] = []
+  let seen : Map[Int32, Bool] = Map([])
+  for group in [left, right] {
+    for i in group {
+      if !seen.contains(i) {
+        seen[i] = true
+        result.push(i)
+      }
+    }
+  }
+  if result.length() > 1024 {
+    raise Limit(resource="annotations per observation", maximum=1024)
+  }
+  result
 }
 
 ///|
@@ -102,6 +132,9 @@ fn json_observations(
   prefix : Array[String],
   inherited : Array[String?],
   rows : Array[Observation],
+  inherited_notes : Array[Int32],
+  bindings : Array[(Array[String], Array[Int32])],
+  references : Array[Int32],
   limits : Limits,
 ) -> Unit raise SdmxError {
   let observations = match object.get("observations") {
@@ -119,10 +152,24 @@ fn json_observations(
     if tuple.length() < measure_count {
       raise Invalid(path=encoded_key, reason="missing measure positions")
     }
-    if tuple.length() > measure_count + layout.observation_attributes.length() {
-      raise Unsupported(
-        feature="observation annotations or excess tuple positions",
-      )
+    let note_start = measure_count + layout.observation_attributes.length()
+    let extra : Array[Int32] = []
+    for i = note_start; i < tuple.length(); i = i + 1 {
+      if layout.notes.is_empty() {
+        raise Invalid(path="annotation", reason="no annotation dictionary")
+      }
+      extra.push(j_int(tuple[i], "annotation index", layout.notes.length() - 1))
+      if extra.length() > 1024 {
+        raise Limit(resource="annotation references", maximum=1024)
+      }
+    }
+    let row_notes = merge_note_indices(inherited_notes, extra)
+    references[0] += row_notes.length()
+    if references[0] > 1000000 {
+      raise Limit(resource="annotation references", maximum=1000000)
+    }
+    if !row_notes.is_empty() {
+      bindings.push((key.copy(), row_notes))
     }
     let measures = layout.measures.mapi((i, wire) => {
       json_component_value(tuple[i], wire)
@@ -181,13 +228,15 @@ pub fn decode_json2(
       feature="JSON mutating action: only Information is accepted",
     )
   }
-  json_no_annotations(object)
+  let dataset_notes = json_note_indices(object, layout.notes)
   let prefix = Array::make(layout.structure.dimensions.length(), "")
   for wire in layout.dataset_dimensions {
     prefix[wire.position] = wire.values.unwrap()[0]
   }
   let inherited = json_attribute_values(object, layout.dataset_attributes)
   let rows : Array[Observation] = []
+  let bindings : Array[(Array[String], Array[Int32])] = []
+  let references = [0]
   match object.get("series") {
     Some(value) if !(value is Null) => {
       if object.contains("observations") {
@@ -204,12 +253,17 @@ pub fn decode_json2(
         let key = prefix.copy()
         json_index_key(encoded_key, layout.series_dimensions, key)
         let object = j_object(value, "series")
-        json_no_annotations(object)
+        let notes = merge_note_indices(
+          dataset_notes,
+          json_note_indices(object, layout.notes),
+        )
         let attributes = inherited.copy()
         for v in json_attribute_values(object, layout.series_attributes) {
           attributes.push(v)
         }
-        json_observations(object, layout, key, attributes, rows, limits)
+        json_observations(
+          object, layout, key, attributes, rows, notes, bindings, references, limits,
+        )
       }
     }
     _ => {
@@ -220,7 +274,10 @@ pub fn decode_json2(
           reason="series components require series data layout",
         )
       }
-      json_observations(object, layout, prefix, inherited, rows, limits)
+      json_observations(
+        object, layout, prefix, inherited, rows, dataset_notes, bindings, references,
+        limits,
+      )
     }
   }
   let dataset = Dataset::new(layout.structure, rows)
@@ -228,5 +285,8 @@ pub fn decode_json2(
     None => dataset
     Some(s) => dataset.validate_with(s)
   }
-  DataMessage::new(layout.kind, layout.reference, validated)
+  DataMessage::new(layout.kind, layout.reference, validated).with_annotations(
+    layout.notes,
+    bindings,
+  )
 }
