@@ -3,6 +3,7 @@ priv struct WireComponent {
   component : Component
   position : Int32
   values : Array[String]?
+  fallback : String?
 }
 
 ///|
@@ -132,8 +133,14 @@ fn json_wire_component(
 ) -> WireComponent raise SdmxError {
   let object = j_object(value, "component")
   let id = j_string(j_required(object, "id"), "component.id")
-  if object.get("default") is Some(value) && !(value is Null) {
-    raise Unsupported(feature="attribute default values")
+  let fallback = match object.get("default") {
+    None | Some(Null) => None
+    Some(value) => {
+      if !(role is Attribute(_)) {
+        raise Invalid(path=id, reason="only attributes may have defaults")
+      }
+      j_scalar(value, "default")
+    }
   }
   if object.get("annotations") is Some(value) &&
     !j_array(value, "component.annotations").is_empty() {
@@ -204,7 +211,10 @@ fn json_wire_component(
     name=j_optional_string(object, "name", ""),
     required=j_optional_bool(object, "isMandatory", false),
   )
-  { component, position, values, }
+  if fallback is Some(text) {
+    validate_value(component, text, limits)
+  }
+  { component, position, values, fallback, }
 }
 
 ///|
@@ -300,6 +310,7 @@ fn json_layout(
           component: Component::new("OBS_VALUE", Measure, Decimal),
           position: -1,
           values: None,
+          fallback: None,
         },
       ]
     Some(value) => {

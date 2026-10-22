@@ -55,3 +55,21 @@ test "JSON2 rejects out of range index mutation and annotation tuple" {
     assert_true(failed)
   }
 }
+
+///|
+test "JSON2 applies attribute defaults before attached metadata validation" {
+  let value = fixture_json_message()
+  let data = j_object(j_object(value, "root")["data"], "data")
+  let structure = j_object(
+    j_array(data["structures"], "structures")[0],
+    "structure",
+  )
+  let attrs = j_object(structure["attributes"], "attributes")
+  j_object(j_array(attrs["dataSet"], "dataSet attributes")[0], "unit")["default"] = Json::string(
+    "kWh",
+  )
+  let dataset = j_object(j_array(data["dataSets"], "datasets")[0], "dataset")
+  dataset["attributes"] = Json::array([Json::null()])
+  let message = decode_json2(canonical_json(value, Limits::standard()))
+  assert_eq(message.dataset().observations()[0].attributes()[0], Some("kWh"))
+}

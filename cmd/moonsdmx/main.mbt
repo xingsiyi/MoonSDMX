@@ -9,7 +9,7 @@ fn read_input(path : String) -> String raise {
 
 ///|
 fn usage() -> Unit {
-  println("moonsdmx json2csv MESSAGE.json")
+  println("moonsdmx json2csv [--drop-annotations] MESSAGE.json")
   println("moonsdmx extract-structure MESSAGE.json")
   println("moonsdmx validate-csv STRUCTURE.json DATA.csv")
   println(
@@ -27,6 +27,16 @@ fn run(args : Array[String]) -> Unit raise {
   let output = match args[1] {
     "json2csv" if args.length() == 3 =>
       @sdmx.decode_json2(read_input(args[2])).encode_csv2()
+    "json2csv" if args.length() == 4 && args[2] == "--drop-annotations" =>
+      @sdmx.decode_json2(read_input(args[3]))
+      .without_annotations()
+      .encode_csv2()
+    "reencode-json2" if args.length() == 6 =>
+      @sdmx.decode_json2(read_input(args[2])).encode_json2(
+        id=args[3],
+        sender=args[4],
+        prepared=args[5],
+      )
     "extract-structure" if args.length() == 3 =>
       @sdmx.decode_json2(read_input(args[2]))
       .dataset()

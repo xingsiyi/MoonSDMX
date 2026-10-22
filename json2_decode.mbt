@@ -46,7 +46,7 @@ fn json_component_value(
   wire : WireComponent,
 ) -> String? raise SdmxError {
   if value is Null {
-    return None
+    return wire.fallback
   }
   match wire.values {
     Some(values) => {
@@ -78,7 +78,7 @@ fn json_attribute_values(
     if i < values.length() {
       json_component_value(values[i], wire)
     } else {
-      None
+      wire.fallback
     }
   })
 }
@@ -181,7 +181,7 @@ fn json_observations(
         if position < tuple.length() {
           json_component_value(tuple[position], wire)
         } else {
-          None
+          wire.fallback
         },
       )
     }
