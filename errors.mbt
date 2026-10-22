@@ -10,6 +10,16 @@ pub(all) suberror SdmxError {
 pub extend SdmxError with @debug.Debug::{to_repr}
 
 ///|
+pub fn SdmxError::message(self : SdmxError) -> String {
+  match self {
+    Invalid(path~, reason~) => "\{path}: \{reason}"
+    Limit(resource~, maximum~) => "\{resource}: limit \{maximum} exceeded"
+    Unsupported(feature~) => "unsupported profile: \{feature}"
+    Conflict(key~, reason~) => "\{key}: \{reason}"
+  }
+}
+
+///|
 pub struct Limits {
   max_text : Int32
   max_rows : Int32
