@@ -182,12 +182,7 @@ fn check_expected(
   base : Dataset,
   operation : LocalOperation,
 ) -> Unit raise SdmxError {
-  if operation.structure_profile != base.structure.to_profile_json() {
-    raise Invalid(
-      path="local.operation.structure",
-      reason="structure profile differs",
-    )
-  }
+  // Structure compatibility is checked once for the enclosing sealed plan.
   if base.get(operation.key) != operation.expected {
     raise Conflict(
       key=framed_key(operation.key),
@@ -303,8 +298,19 @@ pub fn Dataset::apply_local_plan(
     raise Conflict(key="dataset", reason="local plan base snapshot is stale")
   }
   let replacements : Map[String, Observation?] = Map([])
+  let mut final_size = self.rows.length()
   for operation in plan.operations {
     check_expected(self, operation)
+    if !self.index.contains(framed_key(operation.key)) {
+      final_size += 1
+    } else if operation.kind is DeleteExact {
+      final_size -= 1
+    }
+  }
+  if final_size > self.structure.limits.max_rows {
+    raise Limit(resource="observations", maximum=self.structure.limits.max_rows)
+  }
+  for operation in plan.operations {
     replacements[framed_key(operation.key)] = operation_result(
       self.structure,
       operation,

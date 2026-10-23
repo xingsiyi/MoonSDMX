@@ -229,3 +229,95 @@ test "local empty plans are identity and exported omitted values are null" {
   let old = j_object(operation_json["expected"], "expected")
   assert_true(j_array(old["measures"], "measures")[0] is Null)
 }
+
+///|
+test "local final capacity counts simultaneous deletion before insertion" {
+  let original = example_structure()
+  let limits = Limits::new(max_rows=2)
+  let s = Structure::new(original.reference, original.components(), limits~)
+  let base = Dataset::new(s, [
+    metric_row(s, "N", "2026-01", Some("1"), "kWh"),
+    metric_row(s, "N", "2026-02", Some("2"), "kWh"),
+  ])
+  let insert = LocalOperation::replace_observation(
+    base,
+    ["N", "2026-03"],
+    [Some("3")],
+    [Some("kWh"), None],
+  )
+  let rejected = try {
+    ignore(base.apply_local_plan(LocalPlan::new(base, [insert])))
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(rejected)
+  assert_eq(base.length(), 2)
+  let remove = LocalOperation::delete_exact(base, ["N", "2026-01"])
+  let next = base.apply_local_plan(LocalPlan::new(base, [insert, remove]))
+  assert_eq(next.length(), 2)
+  assert_eq(next.get(["N", "2026-01"]), None)
+  assert_eq(next.get(["N", "2026-03"]).unwrap().measures()[0], Some("3"))
+}
+
+///|
+test "local required insertion failure leaves the base untouched" {
+  let original = example_structure()
+  let components = original.components()
+  components[2] = Component::new("OBS_VALUE", Measure, Decimal, required=true)
+  let s = Structure::new(original.reference, components)
+  let base = Dataset::new(s, [metric_row(s, "N", "2026-01", Some("1"), "kWh")])
+  let update = LocalOperation::merge_present(
+    base,
+    ["N", "2026-01"],
+    [Some("2")],
+    [None, None],
+  )
+  let invalid_insert = LocalOperation::merge_present(
+    base,
+    ["S", "2026-01"],
+    [None],
+    [Some("kWh"), None],
+  )
+  let plan = LocalPlan::new(base, [update, invalid_insert])
+  let before = base.fingerprint()
+  let rejected = try {
+    ignore(base.apply_local_plan(plan))
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(rejected)
+  assert_eq(base.fingerprint(), before)
+  assert_eq(base.observations()[0].measures()[0], Some("1"))
+}
+
+///|
+test "local plan operation count obeys structure limits" {
+  let original = example_structure()
+  let s = Structure::new(
+    original.reference,
+    original.components(),
+    limits=Limits::new(max_rows=1),
+  )
+  let base = Dataset::new(s, [])
+  let a = LocalOperation::replace_observation(
+    base,
+    ["N", "2026-01"],
+    [Some("1")],
+    [Some("kWh"), None],
+  )
+  let b = LocalOperation::replace_observation(
+    base,
+    ["S", "2026-01"],
+    [Some("2")],
+    [Some("kWh"), None],
+  )
+  let rejected = try {
+    ignore(LocalPlan::new(base, [a, b]))
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(rejected)
+}
