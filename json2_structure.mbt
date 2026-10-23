@@ -162,7 +162,16 @@ fn json_wire_component(
   }
   let mut representation = json_format(object)
   let mut actual_role = role
-  if role is Dimension && (id == "TIME_PERIOD" || representation is Period) {
+  let roles = match object.get("roles") {
+    None | Some(Null) => []
+    Some(value) => j_strings(value, "component.roles")
+  }
+  if role is Dimension &&
+    (
+      id == "TIME_PERIOD" ||
+      representation is Period ||
+      roles.contains("TIME_PERIOD")
+    ) {
     actual_role = TimeDimension
     representation = Period
   }
@@ -175,6 +184,10 @@ fn json_wire_component(
       }
       let entries : Array[(String, String)] = array.map(value => {
         let entry = j_object(value, "component value")
+        if entry.get("annotations") is Some(value) &&
+          !j_array(value, "component value annotations").is_empty() {
+          raise Unsupported(feature="component-value annotations")
+        }
         if entry.contains("values") {
           raise Unsupported(feature="multi-valued component dictionary")
         }

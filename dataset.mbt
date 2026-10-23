@@ -17,6 +17,7 @@ pub fn Dataset::new(
     raise Limit(resource="observations", maximum=structure.limits.max_rows)
   }
   let detached : Array[Observation] = []
+  let mut text_units = 0
   let index : Map[String, Int32] = Map([])
   let attached : Array[Map[String, String?]] = structure.attributes.map(_ => {
     Map([])
@@ -28,6 +29,25 @@ pub fn Dataset::new(
       input.measures,
       input.attributes,
     )
+    for value in row.key {
+      if text_units > structure.limits.max_text - value.length() {
+        raise Limit(resource="dataset text", maximum=structure.limits.max_text)
+      }
+      text_units += value.length()
+    }
+    for group in [row.measures, row.attributes] {
+      for value in group {
+        if value is Some(text) {
+          if text_units > structure.limits.max_text - text.length() {
+            raise Limit(
+              resource="dataset text",
+              maximum=structure.limits.max_text,
+            )
+          }
+          text_units += text.length()
+        }
+      }
+    }
     let token = row.key_token()
     if index.contains(token) {
       raise Conflict(

@@ -18,12 +18,18 @@ pub fn CodeList::new(
     raise Limit(resource="codes", maximum=limits.max_codes)
   }
   let labels : Map[String, String] = Map([])
+  let mut text_units = 0
   for (code, label) in entries {
     if code.is_empty() {
       raise Invalid(path="code", reason="empty code is reserved for omission")
     }
     check_field(code, limits, "code")
     check_field(label, limits, "code.label")
+    let extra = code.length() + label.length()
+    if text_units > limits.max_text - extra {
+      raise Limit(resource="code list text", maximum=limits.max_text)
+    }
+    text_units += extra
     if labels.contains(code) {
       raise Invalid(path="codelist", reason="duplicate code: \{code}")
     }
