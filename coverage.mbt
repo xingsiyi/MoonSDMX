@@ -22,12 +22,12 @@ pub extend ValueCoverage with @debug.Debug::{to_repr}
 
 ///|
 pub struct DatasetCoverage {
-  observations : Int32
-  dimensions : Array[DimensionCoverage]
-  measures : Array[ValueCoverage]
-  attributes : Array[ValueCoverage]
-  frequencies : Array[(String, Int32)]
-  limits : Limits
+  priv observations : Int32
+  priv dimensions : Array[DimensionCoverage]
+  priv measures : Array[ValueCoverage]
+  priv attributes : Array[ValueCoverage]
+  priv frequencies : Array[(String, Int32)]
+  priv limits : Limits
 } derive(@debug.Debug)
 
 ///|

@@ -41,9 +41,9 @@ fn validate_value(
 
 ///|
 pub struct Observation {
-  key : Array[String]
-  measures : Array[String?]
-  attributes : Array[String?]
+  priv key : Array[String]
+  priv measures : Array[String?]
+  priv attributes : Array[String?]
 } derive(Eq, @debug.Debug)
 
 ///|

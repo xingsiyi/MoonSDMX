@@ -27,7 +27,10 @@ test "revisions separate added removed changed and missing numeric zero" {
 test "revision attribute detail and detached outputs" {
   let s = example_structure()
   let a = Observation::new(s, ["N", "2026-01"], [Some("1")], [Some("kWh"), None])
-  let b = Observation::new(s, ["N", "2026-01"], [Some("1.0")], [Some("kWh"), Some("P")])
+  let b = Observation::new(s, ["N", "2026-01"], [Some("1.0")], [
+    Some("kWh"),
+    Some("P"),
+  ])
   let old = Dataset::new(s, [a])
   let next = Dataset::new(s, [b])
   let revision = old.revisions_to(next)
@@ -52,22 +55,42 @@ test "revision rejects representation requirement label and attachment changes" 
   let original = Dataset::new(s, [])
   let variants : Array[Structure] = []
   let names = s.components()
-  names[0] = Component::new(names[0].id, names[0].role, names[0].representation, name="changed")
+  names[0] = Component::new(
+    names[0].id,
+    names[0].role,
+    names[0].representation,
+    name="changed",
+  )
   variants.push(Structure::new(s.reference, names))
   let required = s.components()
-  required[2] = Component::new(required[2].id, required[2].role, required[2].representation, required=true)
+  required[2] = Component::new(
+    required[2].id,
+    required[2].role,
+    required[2].representation,
+    required=true,
+  )
   variants.push(Structure::new(s.reference, required))
   let represented = s.components()
-  represented[2] = Component::new(represented[2].id, represented[2].role, Integer)
+  represented[2] = Component::new(
+    represented[2].id,
+    represented[2].role,
+    Integer,
+  )
   variants.push(Structure::new(s.reference, represented))
   let attached = s.components()
-  attached[3] = Component::new(attached[3].id, Attribute([]), attached[3].representation)
+  attached[3] = Component::new(
+    attached[3].id,
+    Attribute([]),
+    attached[3].representation,
+  )
   variants.push(Structure::new(s.reference, attached))
   for changed in variants {
     let rejected = try {
       ignore(original.revisions_to(Dataset::new(changed, [])))
       false
-    } catch { _ => true }
+    } catch {
+      _ => true
+    }
     assert_true(rejected)
   }
 }
@@ -80,6 +103,8 @@ test "revision order is independent from input row order" {
   let x = Dataset::new(s, [a, b])
   let y = Dataset::new(s, [b, a])
   assert_eq(x.snapshot_signature(), y.snapshot_signature())
-  assert_eq(Dataset::new(s, []).revisions_to(x).to_json(), Dataset::new(s, []).revisions_to(y).to_json())
+  assert_eq(
+    Dataset::new(s, []).revisions_to(x).to_json(),
+    Dataset::new(s, []).revisions_to(y).to_json(),
+  )
 }
-

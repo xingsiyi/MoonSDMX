@@ -1,8 +1,8 @@
 ///|
 pub struct Dataset {
-  structure : Structure
-  rows : Array[Observation]
-  index : Map[String, Int32]
+  priv structure : Structure
+  priv rows : Array[Observation]
+  priv index : Map[String, Int32]
 } derive(@debug.Debug)
 
 ///|

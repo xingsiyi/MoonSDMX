@@ -1,8 +1,8 @@
 ///|
 pub struct PageCursor {
-  snapshot : String
-  after_key : Array[String]
-  page_size : Int32
+  priv snapshot : String
+  priv after_key : Array[String]
+  priv page_size : Int32
 }
 
 ///|
@@ -83,7 +83,11 @@ pub fn PageCursor::from_json(
     raise Limit(resource="cursor dimensions", maximum=limits.max_columns)
   }
   let key = raw_keys.map(value => j_string(value, "cursor.after_key"))
-  let size = j_int(j_required(object, "page_size"), "cursor.page_size", limits.max_rows)
+  let size = j_int(
+    j_required(object, "page_size"),
+    "cursor.page_size",
+    limits.max_rows,
+  )
   let cursor = {
     snapshot: j_string(j_required(object, "snapshot"), "cursor.snapshot"),
     after_key: key,
@@ -95,9 +99,9 @@ pub fn PageCursor::from_json(
 
 ///|
 pub struct DatasetPage {
-  rows : Array[Observation]
-  next_cursor : PageCursor?
-  snapshot : String
+  priv rows : Array[Observation]
+  priv next_cursor : PageCursor?
+  priv snapshot : String
 }
 
 ///|
@@ -120,9 +124,9 @@ pub fn DatasetPage::snapshot(self : DatasetPage) -> String {
 
 ///|
 pub struct PageSnapshot {
-  structure : Structure
-  rows : Array[Observation]
-  fingerprint : String
+  priv structure : Structure
+  priv rows : Array[Observation]
+  priv fingerprint : String
 }
 
 ///|

@@ -1,7 +1,7 @@
 ///|
 pub struct CodeList {
-  id : String
-  labels : Map[String, String]
+  priv id : String
+  priv labels : Map[String, String]
 } derive(@debug.Debug)
 
 ///|
@@ -93,11 +93,11 @@ fn detached_role(role : Role) -> Role {
 
 ///|
 pub struct Component {
-  id : String
-  name : String
-  role : Role
-  representation : Representation
-  required : Bool
+  priv id : String
+  priv name : String
+  priv role : Role
+  priv representation : Representation
+  priv required : Bool
 } derive(@debug.Debug)
 
 ///|

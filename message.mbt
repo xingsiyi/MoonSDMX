@@ -33,11 +33,11 @@ pub fn ExchangeKind::parse(text : String) -> ExchangeKind raise SdmxError {
 ///|
 /// A dissemination message. Mutating SDMX actions are deliberately not applied.
 pub struct DataMessage {
-  kind : ExchangeKind
-  reference : StructureRef
-  dataset : Dataset
-  notes : Array[Annotation]
-  row_notes : Map[String, Array[Int32]]
+  priv kind : ExchangeKind
+  priv reference : StructureRef
+  priv dataset : Dataset
+  priv notes : Array[Annotation]
+  priv row_notes : Map[String, Array[Int32]]
 } derive(@debug.Debug)
 
 ///|

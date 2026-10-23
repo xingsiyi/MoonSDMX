@@ -102,8 +102,8 @@ pub fn Dataset::reorder_dimensions(
 
 ///|
 pub struct CodeMapping {
-  dimension : String
-  replacements : Map[String, String]
+  priv dimension : String
+  priv replacements : Map[String, String]
 }
 
 ///|

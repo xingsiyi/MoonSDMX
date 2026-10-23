@@ -21,12 +21,12 @@ pub fn SdmxError::message(self : SdmxError) -> String {
 
 ///|
 pub struct Limits {
-  max_text : Int32
-  max_rows : Int32
-  max_columns : Int32
-  max_field : Int32
-  max_codes : Int32
-  max_output : Int32
+  priv max_text : Int32
+  priv max_rows : Int32
+  priv max_columns : Int32
+  priv max_field : Int32
+  priv max_codes : Int32
+  priv max_output : Int32
 } derive(Eq, @debug.Debug)
 
 ///|

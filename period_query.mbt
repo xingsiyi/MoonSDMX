@@ -1,7 +1,7 @@
 ///|
 pub struct PeriodWindow {
-  start_day : Int32
-  end_day : Int32
+  priv start_day : Int32
+  priv end_day : Int32
 } derive(Eq, @debug.Debug)
 
 ///|

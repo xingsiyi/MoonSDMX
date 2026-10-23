@@ -11,12 +11,12 @@ pub extend LocalChangeKind with @debug.Debug::{to_repr}
 
 ///|
 pub struct LocalOperation {
-  kind : LocalChangeKind
-  key : Array[String]
-  expected : Observation?
-  measures : Array[String?]
-  attributes : Array[String?]
-  structure_profile : String
+  priv kind : LocalChangeKind
+  priv key : Array[String]
+  priv expected : Observation?
+  priv measures : Array[String?]
+  priv attributes : Array[String?]
+  priv structure_profile : String
 } derive(@debug.Debug)
 
 ///|
@@ -168,10 +168,10 @@ pub fn LocalOperation::attributes(self : LocalOperation) -> Array[String?] {
 
 ///|
 pub struct LocalPlan {
-  base_signature : String
-  structure_profile : String
-  operations : Array[LocalOperation]
-  limits : Limits
+  priv base_signature : String
+  priv structure_profile : String
+  priv operations : Array[LocalOperation]
+  priv limits : Limits
 } derive(@debug.Debug)
 
 ///|

@@ -1,0 +1,341 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "local/sdmx"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn decode_csv2(Structure, String) -> DataMessage raise SdmxError
+
+pub fn decode_json2(String, expected? : Structure?, limits? : Limits) -> DataMessage raise SdmxError
+
+// Errors
+pub(all) suberror SdmxError {
+  Invalid(path~ : String, reason~ : String)
+  Limit(resource~ : String, maximum~ : Int32)
+  Unsupported(feature~ : String)
+  Conflict(key~ : String, reason~ : String)
+} derive(@debug.Debug)
+pub fn SdmxError::message(Self) -> String
+pub fn SdmxError::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+pub struct Annotation {
+  // private fields
+} derive(Eq, @debug.Debug)
+pub fn Annotation::equal(Self, Self) -> Bool
+pub fn Annotation::from_json(String, limits? : Limits) -> Self raise SdmxError
+pub fn Annotation::not_equal(Self, Self) -> Bool
+pub fn Annotation::to_json(Self) -> String
+pub fn Annotation::to_repr(Self) -> @debug.Repr
+
+pub struct CodeList {
+  // private fields
+} derive(@debug.Debug)
+pub fn CodeList::contains(Self, String) -> Bool
+pub fn CodeList::entries(Self) -> Array[(String, String)]
+pub fn CodeList::id(Self) -> String
+pub fn CodeList::label(Self, String) -> String?
+pub fn CodeList::new(String, Array[(String, String)], limits? : Limits) -> Self raise SdmxError
+pub fn CodeList::to_repr(Self) -> @debug.Repr
+
+pub struct CodeMapping {
+  // private fields
+}
+pub fn CodeMapping::dimension(Self) -> String
+pub fn CodeMapping::new(String, Array[(String, String)], limits? : Limits) -> Self raise SdmxError
+
+pub struct Component {
+  // private fields
+} derive(@debug.Debug)
+pub fn Component::id(Self) -> String
+pub fn Component::name(Self) -> String
+pub fn Component::new(String, Role, Representation, name? : String, required? : Bool) -> Self raise SdmxError
+pub fn Component::representation(Self) -> Representation
+pub fn Component::required(Self) -> Bool
+pub fn Component::role(Self) -> Role
+pub fn Component::to_repr(Self) -> @debug.Repr
+
+pub struct DataMessage {
+  // private fields
+} derive(@debug.Debug)
+pub fn DataMessage::annotations(Self) -> Array[Annotation]
+pub fn DataMessage::annotations_for(Self, Array[String]) -> Array[Annotation] raise SdmxError
+pub fn DataMessage::dataset(Self) -> Dataset
+pub fn DataMessage::encode_csv2(Self) -> String raise SdmxError
+pub fn DataMessage::encode_json2(Self, id~ : String, sender~ : String, prepared~ : String) -> String raise SdmxError
+pub fn DataMessage::kind(Self) -> ExchangeKind
+pub fn DataMessage::new(ExchangeKind, StructureRef, Dataset) -> Self raise SdmxError
+pub fn DataMessage::reference(Self) -> StructureRef
+pub fn DataMessage::to_repr(Self) -> @debug.Repr
+pub fn DataMessage::with_annotations(Self, Array[Annotation], Array[(Array[String], Array[Int32])]) -> Self raise SdmxError
+pub fn DataMessage::without_annotations(Self) -> Self
+
+pub struct Dataset {
+  // private fields
+} derive(@debug.Debug)
+pub fn Dataset::apply_local_plan(Self, LocalPlan) -> Self raise SdmxError
+pub fn Dataset::coverage(Self) -> DatasetCoverage raise SdmxError
+pub fn Dataset::dimension_values(Self, String) -> Array[String] raise SdmxError
+pub fn Dataset::fingerprint(Self) -> String raise SdmxError
+pub fn Dataset::get(Self, Array[String]) -> Observation? raise SdmxError
+pub fn Dataset::length(Self) -> Int32
+pub fn Dataset::new(Structure, Array[Observation]) -> Self raise SdmxError
+pub fn Dataset::observations(Self) -> Array[Observation]
+pub fn Dataset::periods_contained(Self, PeriodWindow) -> Self raise SdmxError
+pub fn Dataset::periods_overlapping(Self, PeriodWindow) -> Self raise SdmxError
+pub fn Dataset::project(Self, Structure, Array[String], Array[String]) -> Self raise SdmxError
+pub fn Dataset::recode(Self, Structure, Array[CodeMapping]) -> Self raise SdmxError
+pub fn Dataset::reorder_dimensions(Self, Structure) -> Self raise SdmxError
+pub fn Dataset::revisions_to(Self, Self) -> DatasetRevision raise SdmxError
+pub fn Dataset::select(Self, Selection) -> Self raise SdmxError
+pub fn Dataset::snapshot_signature(Self) -> String raise SdmxError
+pub fn Dataset::sorted(Self) -> Self raise SdmxError
+pub fn Dataset::structure(Self) -> Structure
+pub fn Dataset::to_repr(Self) -> @debug.Repr
+pub fn Dataset::validate_frequency(Self, String) -> Unit raise SdmxError
+pub fn Dataset::validate_with(Self, Structure) -> Self raise SdmxError
+
+pub struct DatasetCoverage {
+  // private fields
+} derive(@debug.Debug)
+pub fn DatasetCoverage::attributes(Self) -> Array[ValueCoverage]
+pub fn DatasetCoverage::dimensions(Self) -> Array[DimensionCoverage]
+pub fn DatasetCoverage::measures(Self) -> Array[ValueCoverage]
+pub fn DatasetCoverage::observation_count(Self) -> Int32
+pub fn DatasetCoverage::period_frequencies(Self) -> Array[(String, Int32)]
+pub fn DatasetCoverage::to_json(Self) -> String raise SdmxError
+pub fn DatasetCoverage::to_repr(Self) -> @debug.Repr
+
+pub struct DatasetPage {
+  // private fields
+}
+pub fn DatasetPage::next_cursor(Self) -> PageCursor?
+pub fn DatasetPage::observations(Self) -> Array[Observation]
+pub fn DatasetPage::snapshot(Self) -> String
+
+pub struct DatasetRevision {
+  // private fields
+} derive(@debug.Debug)
+pub fn DatasetRevision::added(Self) -> Array[Observation]
+pub fn DatasetRevision::changed(Self) -> Array[ObservationRevision]
+pub fn DatasetRevision::is_empty(Self) -> Bool
+pub fn DatasetRevision::removed(Self) -> Array[Observation]
+pub fn DatasetRevision::to_json(Self) -> String raise SdmxError
+pub fn DatasetRevision::to_repr(Self) -> @debug.Repr
+
+pub struct DecimalValue {
+  // private fields
+} derive(Eq, @debug.Debug)
+pub fn DecimalValue::add(Self, Self) -> Self raise SdmxError
+pub fn DecimalValue::compare_value(Self, Self) -> Int32
+pub fn DecimalValue::equal(Self, Self) -> Bool
+pub fn DecimalValue::format(Self) -> String
+pub fn DecimalValue::is_integer(Self) -> Bool
+pub fn DecimalValue::not_equal(Self, Self) -> Bool
+pub fn DecimalValue::parse(String) -> Self raise SdmxError
+pub fn DecimalValue::to_repr(Self) -> @debug.Repr
+
+pub(all) struct DimensionCoverage {
+  id : String
+  observed_values : Int32
+  declared_codes : Int32?
+  unseen_codes : Array[String]
+} derive(@debug.Debug)
+pub fn DimensionCoverage::to_repr(Self) -> @debug.Repr
+
+type DimensionPredicate
+
+pub(all) enum ExchangeKind {
+  Dataflow
+  Datastructure
+  Dataprovision
+} derive(Eq, @debug.Debug)
+pub fn ExchangeKind::equal(Self, Self) -> Bool
+pub fn ExchangeKind::format(Self) -> String
+pub fn ExchangeKind::not_equal(Self, Self) -> Bool
+pub fn ExchangeKind::parse(String) -> Self raise SdmxError
+pub fn ExchangeKind::to_repr(Self) -> @debug.Repr
+
+pub struct FieldRevision {
+  // private fields
+} derive(Eq, @debug.Debug)
+pub fn FieldRevision::after(Self) -> String?
+pub fn FieldRevision::before(Self) -> String?
+pub fn FieldRevision::component(Self) -> String
+pub fn FieldRevision::equal(Self, Self) -> Bool
+pub fn FieldRevision::not_equal(Self, Self) -> Bool
+pub fn FieldRevision::to_repr(Self) -> @debug.Repr
+
+pub(all) enum Granularity {
+  Annual
+  HalfYear
+  Quarterly
+  Monthly
+  Daily
+} derive(Eq, @debug.Debug)
+pub fn Granularity::equal(Self, Self) -> Bool
+pub fn Granularity::not_equal(Self, Self) -> Bool
+pub fn Granularity::to_repr(Self) -> @debug.Repr
+
+pub struct Limits {
+  // private fields
+} derive(Eq, @debug.Debug)
+pub fn Limits::equal(Self, Self) -> Bool
+pub fn Limits::max_rows(Self) -> Int32
+pub fn Limits::new(max_text? : Int32, max_rows? : Int32, max_columns? : Int32, max_field? : Int32, max_codes? : Int32, max_output? : Int32) -> Self raise SdmxError
+pub fn Limits::not_equal(Self, Self) -> Bool
+pub fn Limits::standard() -> Self
+pub fn Limits::to_repr(Self) -> @debug.Repr
+
+type LocalChangeKind derive(@debug.Debug)
+pub fn LocalChangeKind::to_repr(Self) -> @debug.Repr
+
+pub struct LocalOperation {
+  // private fields
+} derive(@debug.Debug)
+pub fn LocalOperation::attributes(Self) -> Array[String?]
+pub fn LocalOperation::delete_exact(Dataset, Array[String]) -> Self raise SdmxError
+pub fn LocalOperation::expected(Self) -> Observation?
+pub fn LocalOperation::key(Self) -> Array[String]
+pub fn LocalOperation::kind(Self) -> String
+pub fn LocalOperation::measures(Self) -> Array[String?]
+pub fn LocalOperation::merge_present(Dataset, Array[String], Array[String?], Array[String?]) -> Self raise SdmxError
+pub fn LocalOperation::replace_observation(Dataset, Array[String], Array[String?], Array[String?]) -> Self raise SdmxError
+pub fn LocalOperation::to_repr(Self) -> @debug.Repr
+
+pub struct LocalPlan {
+  // private fields
+} derive(@debug.Debug)
+pub fn LocalPlan::base_signature(Self) -> String
+pub fn LocalPlan::length(Self) -> Int32
+pub fn LocalPlan::new(Dataset, Array[LocalOperation]) -> Self raise SdmxError
+pub fn LocalPlan::operations(Self) -> Array[LocalOperation]
+pub fn LocalPlan::to_json(Self) -> String raise SdmxError
+pub fn LocalPlan::to_repr(Self) -> @debug.Repr
+
+pub struct Observation {
+  // private fields
+} derive(Eq, @debug.Debug)
+pub fn Observation::attributes(Self) -> Array[String?]
+pub fn Observation::equal(Self, Self) -> Bool
+pub fn Observation::key(Self) -> Array[String]
+pub fn Observation::key_token(Self) -> String
+pub fn Observation::measures(Self) -> Array[String?]
+pub fn Observation::new(Structure, Array[String], Array[String?], Array[String?]) -> Self raise SdmxError
+pub fn Observation::not_equal(Self, Self) -> Bool
+pub fn Observation::to_repr(Self) -> @debug.Repr
+pub fn Observation::value(Self, Structure, String) -> String? raise SdmxError
+
+pub struct ObservationRevision {
+  // private fields
+} derive(@debug.Debug)
+pub fn ObservationRevision::attributes(Self) -> Array[FieldRevision]
+pub fn ObservationRevision::key(Self) -> Array[String]
+pub fn ObservationRevision::measures(Self) -> Array[FieldRevision]
+pub fn ObservationRevision::to_repr(Self) -> @debug.Repr
+
+pub struct PageCursor {
+  // private fields
+}
+pub fn PageCursor::after_key(Self) -> Array[String]
+pub fn PageCursor::from_json(String, limits? : Limits) -> Self raise SdmxError
+pub fn PageCursor::page_size(Self) -> Int32
+pub fn PageCursor::snapshot(Self) -> String
+pub fn PageCursor::to_json(Self, limits? : Limits) -> String raise SdmxError
+
+pub struct PageSnapshot {
+  // private fields
+}
+pub fn PageSnapshot::fingerprint(Self) -> String
+pub fn PageSnapshot::length(Self) -> Int32
+pub fn PageSnapshot::new(Dataset) -> Self raise SdmxError
+pub fn PageSnapshot::page(Self, page_size? : Int32, after? : PageCursor?) -> DatasetPage raise SdmxError
+
+pub struct PeriodValue {
+  // private fields
+} derive(Eq, @debug.Debug)
+pub fn PeriodValue::code(Self) -> String
+pub fn PeriodValue::compare_period(Self, Self) -> Int32
+pub fn PeriodValue::contains_period(Self, Self) -> Bool
+pub fn PeriodValue::day_bounds(Self) -> (Int32, Int32)
+pub fn PeriodValue::equal(Self, Self) -> Bool
+pub fn PeriodValue::frequency(Self) -> String
+pub fn PeriodValue::granularity(Self) -> Granularity
+pub fn PeriodValue::not_equal(Self, Self) -> Bool
+pub fn PeriodValue::overlaps(Self, Self) -> Bool
+pub fn PeriodValue::parse(String) -> Self raise SdmxError
+pub fn PeriodValue::to_repr(Self) -> @debug.Repr
+
+pub struct PeriodWindow {
+  // private fields
+} derive(Eq, @debug.Debug)
+pub fn PeriodWindow::equal(Self, Self) -> Bool
+pub fn PeriodWindow::new(PeriodValue, PeriodValue) -> Self raise SdmxError
+pub fn PeriodWindow::not_equal(Self, Self) -> Bool
+pub fn PeriodWindow::to_repr(Self) -> @debug.Repr
+
+pub(all) enum Representation {
+  Text
+  Decimal
+  Integer
+  Period
+  Coded(CodeList)
+} derive(@debug.Debug)
+pub fn Representation::to_repr(Self) -> @debug.Repr
+
+pub(all) enum Role {
+  Dimension
+  TimeDimension
+  Measure
+  Attribute(Array[String])
+} derive(@debug.Debug)
+pub fn Role::to_repr(Self) -> @debug.Repr
+
+pub struct Selection {
+  // private fields
+}
+pub fn Selection::new(Structure, Array[(String, Array[String])]) -> Self raise SdmxError
+
+pub struct Structure {
+  // private fields
+} derive(@debug.Debug)
+pub fn Structure::attributes(Self) -> Array[Component]
+pub fn Structure::component(Self, String) -> Component?
+pub fn Structure::components(Self) -> Array[Component]
+pub fn Structure::dimension_index(Self, String) -> Int32?
+pub fn Structure::dimensions(Self) -> Array[Component]
+pub fn Structure::fingerprint(Self) -> String raise SdmxError
+pub fn Structure::from_profile_json(String, limits? : Limits) -> Self raise SdmxError
+pub fn Structure::measures(Self) -> Array[Component]
+pub fn Structure::new(StructureRef, Array[Component], limits? : Limits) -> Self raise SdmxError
+pub fn Structure::reference(Self) -> StructureRef
+pub fn Structure::time_index(Self) -> Int32?
+pub fn Structure::to_profile_json(Self) -> String raise SdmxError
+pub fn Structure::to_repr(Self) -> @debug.Repr
+
+pub struct StructureRef {
+  // private fields
+} derive(Eq, @debug.Debug)
+pub fn StructureRef::agency(Self) -> String
+pub fn StructureRef::equal(Self, Self) -> Bool
+pub fn StructureRef::format(Self) -> String
+pub fn StructureRef::id(Self) -> String
+pub fn StructureRef::new(String, String, String) -> Self raise SdmxError
+pub fn StructureRef::not_equal(Self, Self) -> Bool
+pub fn StructureRef::parse(String) -> Self raise SdmxError
+pub fn StructureRef::to_repr(Self) -> @debug.Repr
+pub fn StructureRef::version(Self) -> String
+
+pub(all) struct ValueCoverage {
+  id : String
+  reported : Int32
+  omitted : Int32
+  distinct_values : Int32
+} derive(@debug.Debug)
+pub fn ValueCoverage::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

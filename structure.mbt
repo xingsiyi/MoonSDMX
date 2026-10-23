@@ -1,11 +1,11 @@
 ///|
 pub struct Structure {
-  reference : StructureRef
-  dimensions : Array[Component]
-  measures : Array[Component]
-  attributes : Array[Component]
-  positions : Map[String, Int32]
-  limits : Limits
+  priv reference : StructureRef
+  priv dimensions : Array[Component]
+  priv measures : Array[Component]
+  priv attributes : Array[Component]
+  priv positions : Map[String, Int32]
+  priv limits : Limits
 } derive(@debug.Debug)
 
 ///|

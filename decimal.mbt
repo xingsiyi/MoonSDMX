@@ -4,8 +4,8 @@ let decimal_bound : Int64 = 9000000000000000000L
 
 ///|
 pub struct DecimalValue {
-  coefficient : Int64
-  scale : Int32
+  priv coefficient : Int64
+  priv scale : Int32
 } derive(Eq, @debug.Debug)
 
 ///|

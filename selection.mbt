@@ -6,8 +6,8 @@ struct DimensionPredicate {
 
 ///|
 pub struct Selection {
-  signature : String
-  predicates : Array[DimensionPredicate]
+  priv signature : String
+  priv predicates : Array[DimensionPredicate]
 }
 
 ///|

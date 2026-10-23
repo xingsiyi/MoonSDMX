@@ -1,7 +1,7 @@
 ///|
 /// An annotation object is retained as bounded canonical JSON, without fetching URLs.
 pub struct Annotation {
-  content : String
+  priv content : String
 } derive(Eq, @debug.Debug)
 
 ///|

@@ -15,10 +15,10 @@ pub extend Granularity with @debug.Debug::{to_repr}
 
 ///|
 pub struct PeriodValue {
-  code : String
-  granularity : Granularity
-  start_day : Int32
-  end_day : Int32
+  priv code : String
+  priv granularity : Granularity
+  priv start_day : Int32
+  priv end_day : Int32
 } derive(Eq, @debug.Debug)
 
 ///|

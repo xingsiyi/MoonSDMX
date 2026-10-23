@@ -1,8 +1,8 @@
 ///|
 pub struct StructureRef {
-  agency : String
-  id : String
-  version : String
+  priv agency : String
+  priv id : String
+  priv version : String
 } derive(Eq, @debug.Debug)
 
 ///|
