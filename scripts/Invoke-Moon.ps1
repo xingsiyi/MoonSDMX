@@ -16,29 +16,44 @@ $compilerDriver = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\cs
 if (-not (Test-Path -LiteralPath $compilerDriver)) {
     throw 'Windows .NET Framework C# compiler is required for this local adapter.'
 }
-$adapterDirectory = Join-Path $projectRoot '.local\toolchain-016'
-New-Item -ItemType Directory -Path $adapterDirectory -Force | Out-Null
 $adapterSource = Join-Path $PSScriptRoot 'windows_path_adapter.cs'
+$sourceId = (Get-FileHash -LiteralPath $adapterSource -Algorithm SHA256).Hash.Substring(0, 16)
+$adapterDirectory = Join-Path $projectRoot ".local\toolchain-016\$sourceId"
+New-Item -ItemType Directory -Path $adapterDirectory -Force | Out-Null
 $adapterExecutable = Join-Path $adapterDirectory 'moonc-path-adapter.exe'
 $formatterAdapter = Join-Path $adapterDirectory 'moonfmt-path-adapter.exe'
-& $compilerDriver /nologo /target:exe "/out:$adapterExecutable" $adapterSource
-if ($LASTEXITCODE -ne 0) { throw 'Could not compile the project-local path adapter.' }
-Copy-Item -LiteralPath $adapterExecutable -Destination $formatterAdapter -Force
+# A source-keyed immutable cache avoids rewriting an executable in use.
+$cacheMutex = New-Object System.Threading.Mutex($false, "Local\MoonSDMX-adapter-$sourceId")
+$cacheOwned = $false
+try {
+    $cacheOwned = $cacheMutex.WaitOne(30000)
+    if (-not $cacheOwned) { throw 'Timed out waiting for local adapter compilation.' }
+    if (-not (Test-Path -LiteralPath $adapterExecutable)) {
+        & $compilerDriver /nologo /target:exe "/out:$adapterExecutable" $adapterSource
+        if ($LASTEXITCODE -ne 0) { throw 'Could not compile the project-local path adapter.' }
+    }
+    if (-not (Test-Path -LiteralPath $formatterAdapter)) {
+        Copy-Item -LiteralPath $adapterExecutable -Destination $formatterAdapter
+    }
+} finally {
+    if ($cacheOwned) { $cacheMutex.ReleaseMutex() }
+    $cacheMutex.Dispose()
+}
 $previousOverride = $env:MOONC_OVERRIDE
-$previousCompiler = $env:MOONCEP_REAL_COMPILER
+$previousCompiler = $env:MOONSDMX_REAL_COMPILER
 $previousFormatterOverride = $env:MOONFMT_OVERRIDE
-$previousFormatter = $env:MOONCEP_REAL_FORMATTER
+$previousFormatter = $env:MOONSDMX_REAL_FORMATTER
 try {
     $env:MOONC_OVERRIDE = $adapterExecutable
-    $env:MOONCEP_REAL_COMPILER = $realCompiler
+    $env:MOONSDMX_REAL_COMPILER = $realCompiler
     $env:MOONFMT_OVERRIDE = $formatterAdapter
-    $env:MOONCEP_REAL_FORMATTER = Join-Path (Split-Path -Parent $moonCommand) 'moonfmt.exe'
+    $env:MOONSDMX_REAL_FORMATTER = Join-Path (Split-Path -Parent $moonCommand) 'moonfmt.exe'
     & $moonCommand @MoonArgs
     $resultCode = $LASTEXITCODE
 } finally {
     $env:MOONC_OVERRIDE = $previousOverride
-    $env:MOONCEP_REAL_COMPILER = $previousCompiler
+    $env:MOONSDMX_REAL_COMPILER = $previousCompiler
     $env:MOONFMT_OVERRIDE = $previousFormatterOverride
-    $env:MOONCEP_REAL_FORMATTER = $previousFormatter
+    $env:MOONSDMX_REAL_FORMATTER = $previousFormatter
 }
 exit $resultCode

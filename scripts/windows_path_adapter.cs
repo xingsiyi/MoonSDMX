@@ -1,4 +1,4 @@
-// Original local build adapter; not a compiler replacement. See Invoke-Moon016.ps1.
+// Original local build adapter; not a compiler replacement. See Invoke-Moon.ps1.
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -22,7 +22,7 @@ class MooncPathAdapter {
     static int Main(string[] args) {
         bool formatting = Path.GetFileNameWithoutExtension(
             Process.GetCurrentProcess().MainModule.FileName).StartsWith("moonfmt-");
-        string variable = formatting ? "MOONCEP_REAL_FORMATTER" : "MOONCEP_REAL_COMPILER";
+        string variable = formatting ? "MOONSDMX_REAL_FORMATTER" : "MOONSDMX_REAL_COMPILER";
         string compiler = Environment.GetEnvironmentVariable(variable);
         if (String.IsNullOrEmpty(compiler)) {
             Console.Error.WriteLine(variable + " must name the original tool");
