@@ -82,7 +82,7 @@ fn run(original : Array[String]) -> Unit raise {
   match destination {
     Some(path) => @fs.write_string_to_file(path, output)
     None => {
-      let display = output.replace(old="\r\n", new="\n")
+      let display = output.replace_all(old="\r\n", new="\n")
       println(
         if display.has_suffix("\n") {
           display[:display.length() - 1].to_owned()
