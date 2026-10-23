@@ -251,3 +251,87 @@ pub fn Dataset::recode(
   }
   Dataset::new(target, rows)
 }
+
+///|
+fn transform_projection_positions(
+  original : Array[Component],
+  selected : Array[String],
+  target : Array[Component],
+  limits : Limits,
+) -> Array[Int32] raise SdmxError {
+  if selected.length() != target.length() {
+    raise Invalid(
+      path="projection",
+      reason="selected fields differ from target structure",
+    )
+  }
+  let available : Map[String, Int32] = Map([])
+  for i, component in original {
+    available[component.id] = i
+  }
+  let seen : Map[String, Bool] = Map([])
+  let positions : Array[Int32] = []
+  for i, id in selected {
+    if seen.contains(id) {
+      raise Invalid(path=id, reason="duplicate projected component")
+    }
+    let position = match available.get(id) {
+      Some(p) => p
+      None =>
+        raise Invalid(path=id, reason="component is not in the selected role")
+    }
+    seen[id] = true
+    transform_same_component(original[position], target[i], limits)
+    positions.push(position)
+  }
+  for component in original {
+    if component.required && !seen.contains(component.id) {
+      raise Invalid(
+        path=component.id,
+        reason="projection would drop required metadata or measure",
+      )
+    }
+  }
+  positions
+}
+
+///|
+/// Project explicit measure/attribute lists; all dimensions and every required
+/// measure/attribute must remain. Optional metadata is dropped only by omission
+/// from the explicit list; retained metadata and attachments cannot be rewritten.
+pub fn Dataset::project(
+  self : Dataset,
+  target : Structure,
+  measures : Array[String],
+  attributes : Array[String],
+) -> Dataset raise SdmxError {
+  transform_same_columns(
+    self.structure.dimensions,
+    target.dimensions,
+    target.limits,
+  )
+  let measure_positions = transform_projection_positions(
+    self.structure.measures,
+    measures,
+    target.measures,
+    target.limits,
+  )
+  let attribute_positions = transform_projection_positions(
+    self.structure.attributes,
+    attributes,
+    target.attributes,
+    target.limits,
+  )
+  let rows : Array[Observation] = []
+  for row in self.rows {
+    rows.push(
+      Observation::new(
+        target,
+        row.key,
+        measure_positions.map(i => row.measures[i]),
+        attribute_positions.map(i => row.attributes[i]),
+      ),
+    )
+  }
+  Dataset::new(target, rows)
+}

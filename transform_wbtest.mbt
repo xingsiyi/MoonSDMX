@@ -70,8 +70,15 @@ fn recode_target(s : Structure) -> Structure raise SdmxError {
 ///|
 fn recode_source() -> Structure raise SdmxError {
   let s = example_structure()
-  let region = Component::new("REGION", Dimension, Coded(CodeList::new("REGION1", [("N", "North"), ("S", "South")])))
-  Structure::new(s.reference, [region, s.dimensions[1], ..s.measures, ..s.attributes])
+  let region = Component::new(
+    "REGION",
+    Dimension,
+    Coded(CodeList::new("REGION1", [("N", "North"), ("S", "South")])),
+  )
+  Structure::new(
+    s.reference,
+    [region, s.dimensions[1], ..s.measures, ..s.attributes],
+  )
 }
 
 ///|
@@ -125,6 +132,75 @@ test "code recoding rejects collisions even when colliding code is not observed"
   assert_true(
     try {
       ignore(CodeMapping::new("REGION", [("N", "X"), ("N", "Y")]))
+      false
+    } catch {
+      _ => true
+    },
+  )
+}
+
+///|
+test "projection preserves required unit and identity while dropping explicit optional field" {
+  let s = example_structure()
+  let target = Structure::new(
+    StructureRef::new("TEST", "PROJECTED", "1"),
+    [..s.dimensions, ..s.measures, s.attributes[0]],
+  )
+  let data = Dataset::new(s, [
+    Observation::new(s, ["N", "2026-01"], [Some("2.30")], [
+      Some("kWh"),
+      Some("provisional"),
+    ]),
+  ])
+  let result = data.project(target, ["OBS_VALUE"], ["UNIT"])
+  assert_eq(result.observations()[0].attributes(), [Some("kWh")])
+  assert_eq(result.observations()[0].key(), ["N", "2026-01"])
+  assert_eq(data.observations()[0].attributes().length(), 2)
+}
+
+///|
+test "projection rejects missing unit wrong role duplicate selection and metadata change" {
+  let s = example_structure()
+  let data = Dataset::new(s, [])
+  let stripped = Structure::new(s.reference, [..s.dimensions, ..s.measures])
+  assert_true(
+    try {
+      ignore(data.project(stripped, ["OBS_VALUE"], []))
+      false
+    } catch {
+      _ => true
+    },
+  )
+  assert_true(
+    try {
+      ignore(data.project(s, ["UNIT"], ["UNIT", "STATUS"]))
+      false
+    } catch {
+      _ => true
+    },
+  )
+  assert_true(
+    try {
+      ignore(data.project(s, ["OBS_VALUE"], ["UNIT", "UNIT"]))
+      false
+    } catch {
+      _ => true
+    },
+  )
+  let renamed = Component::new(
+    "UNIT",
+    Attribute(["REGION"]),
+    Text,
+    name="different",
+    required=true,
+  )
+  let target = Structure::new(
+    s.reference,
+    [..s.dimensions, ..s.measures, renamed],
+  )
+  assert_true(
+    try {
+      ignore(data.project(target, ["OBS_VALUE"], ["UNIT"]))
       false
     } catch {
       _ => true
