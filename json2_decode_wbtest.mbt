@@ -73,3 +73,35 @@ test "JSON2 applies attribute defaults before attached metadata validation" {
   let message = decode_json2(canonical_json(value, Limits::standard()))
   assert_eq(message.dataset().observations()[0].attributes()[0], Some("kWh"))
 }
+
+///|
+test "external DSD validation rejects conflicting identified source structure" {
+  let value = fixture_json_message()
+  let root = j_object(value, "root")
+  let data = j_object(root["data"], "data")
+  let structure = j_object(
+    j_array(data["structures"], "structures")[0],
+    "structure",
+  )
+  let expected = json_layout(
+      structure |> Json::object,
+      None,
+      Limits::standard(),
+    ).structure
+  j_array(structure["links"], "links").push({
+    "urn": "urn:sdmx:org.sdmx.infomodel.datastructure.DataStructure=DEMO:OTHER(1.0)",
+    "rel": "datastructure",
+  })
+  let rejected = try {
+    ignore(
+      decode_json2(
+        canonical_json(value, Limits::standard()),
+        expected=Some(expected),
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(rejected)
+}

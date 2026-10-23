@@ -281,6 +281,22 @@ fn json_layout(
     { content: canonical_json(value, limits), }
   })
   let (kind, reference) = json_exchange_reference(object)
+  if expected is Some(s) {
+    // An explicitly identified DSD must not be silently replaced by the caller.
+    let prefix = "urn:sdmx:org.sdmx.infomodel.datastructure.DataStructure="
+    for value in j_array(j_required(object, "links"), "structure.links") {
+      let link = j_object(value, "structure link")
+      if link.get("urn") is Some(String(urn)) && urn.has_prefix(prefix) {
+        let actual = StructureRef::parse(urn[prefix.length():].to_owned())
+        if actual != s.reference {
+          raise Conflict(
+            key=actual.format(),
+            reason="expected DSD reference differs from source link",
+          )
+        }
+      }
+    }
+  }
   let dimension_object = j_object(
     j_required(object, "dimensions"),
     "dimensions",
