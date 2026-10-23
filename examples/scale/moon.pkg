@@ -1,0 +1,6 @@
+import {
+  "local/sdmx",
+  "moonbitlang/core/env",
+}
+
+pkgtype(kind: "executable")
