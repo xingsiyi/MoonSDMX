@@ -1,0 +1,42 @@
+name: MoonSDMX check build test
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Toolchain and dependencies
+        run: |
+          moon version --all
+          moon update
+      - name: Source scale and private-material hygiene
+        run: python3 scripts/verify_repository.py
+      - name: Check build and test all targets
+        run: |
+          moon check --target all --deny-warn
+          moon build --target all --deny-warn
+          moon test --target all --deny-warn
+      - name: Formatting and public interfaces
+        run: |
+          moon fmt --check
+          moon info
+          git diff --exit-code
+      - name: Complete scenarios
+        run: |
+          moon run --target native --deny-warn examples/open_data
+          moon run --target native --deny-warn examples/department_kpi
+          moon run --target native --deny-warn examples/research_revision
+          moon run --target native --deny-warn examples/energy_catalog
+          moon run --target native --release --deny-warn examples/scale
