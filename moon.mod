@@ -1,12 +1,12 @@
-name = "local/sdmx"
+name = "xingsiyi/moonsdmx"
 
 version = "0.1.0"
-
-private = true
 
 license = "MIT"
 
 readme = "README.md"
+
+repository = "https://github.com/xingsiyi/MoonSDMX"
 
 description = "Structure-aware multidimensional statistical data exchange for MoonBit"
 

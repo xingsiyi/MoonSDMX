@@ -1,5 +1,5 @@
 import {
-  "local/sdmx",
+  "xingsiyi/moonsdmx" @sdmx,
   "moonbitlang/core/env",
   "moonbitlang/x/fs",
   "moonbitlang/x/sys",
