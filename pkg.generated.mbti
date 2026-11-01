@@ -80,7 +80,9 @@ pub fn Dataset::coverage(Self) -> DatasetCoverage raise SdmxError
 pub fn Dataset::dimension_values(Self, String) -> Array[String] raise SdmxError
 pub fn Dataset::fingerprint(Self) -> String raise SdmxError
 pub fn Dataset::get(Self, Array[String]) -> Observation? raise SdmxError
+pub fn Dataset::grouped_totals(Self, String, Array[String]) -> Array[MeasureTotal] raise SdmxError
 pub fn Dataset::length(Self) -> Int32
+pub fn Dataset::merge_partition(Self, Self, allow_identical? : Bool) -> Self raise SdmxError
 pub fn Dataset::new(Structure, Array[Observation]) -> Self raise SdmxError
 pub fn Dataset::observations(Self) -> Array[Observation]
 pub fn Dataset::periods_contained(Self, PeriodWindow) -> Self raise SdmxError
@@ -214,6 +216,15 @@ pub fn LocalPlan::new(Dataset, Array[LocalOperation]) -> Self raise SdmxError
 pub fn LocalPlan::operations(Self) -> Array[LocalOperation]
 pub fn LocalPlan::to_json(Self) -> String raise SdmxError
 pub fn LocalPlan::to_repr(Self) -> @debug.Repr
+
+pub(all) struct MeasureTotal {
+  dimension_values : Array[String]
+  attributes : Array[String?]
+  frequency : String?
+  reported : Int32
+  missing : Int32
+  total : String?
+}
 
 pub struct Observation {
   // private fields

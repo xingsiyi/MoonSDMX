@@ -40,3 +40,6 @@ jobs:
           moon run --target native --deny-warn examples/research_revision
           moon run --target native --deny-warn examples/energy_catalog
           moon run --target native --release --deny-warn examples/scale
+
+      - name: November integration scenario
+        run: moon run examples/november --target native --deny-warn

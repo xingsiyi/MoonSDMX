@@ -101,3 +101,8 @@ moon run --target native cmd/moonsdmx -- reencode-json2 MESSAGE.json msg DEMO 20
 测试覆盖结构/代码域/附着关系、CSV 引号及截断、JSON 索引/默认/继承/null、独立整数 oracle 小数比较、日历边界、注释转换、预算、映射碰撞、游标失效、计划原子性及修订。官方固定 JSON 2.0 Schema 和三种官方样本另在 Git 外完成完整键、值、属性及注释对照；未将其冒作原创数据。
 
 `scripts/verify_repository.py` 检查 >4,000 行有效生产 MoonBit、>30 条非空提交及私有材料不进入历史；排除测试、示例和生成接口。CI 覆盖四后端检查/构建/测试、格式/接口和场景。来源与许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+
+## 十一月新增功能
+
+**结构一致的分区合并**（`Dataset::merge_partition`）；**保留单位与缺值的精确分组汇总**（`Dataset::grouped_totals`）。详见[功能、用途和边界](docs/NOVEMBER_FEATURES.md)，运行 `moon run examples/november --target native --deny-warn`。当前仍为本地未发布源码，不提供虚构安装地址。
