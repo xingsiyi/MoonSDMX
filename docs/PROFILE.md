@@ -8,14 +8,15 @@ This implementation targets the fixed SDMX 3.0 data exchange specifications:
 The current upstream specifications also have 2.1 editions. Their added semantics
 are outside this profile. This library does not claim complete SDMX conformance.
 
-## API scopes (unreleased additions)
+## API scopes (MoonSDMX 2.0.0)
 
 The original `decode_json2` / `decode_csv2` APIs below retain their single
 Information-message contracts. New `decode_json2_bundle`, `decode_csv2_bundle`,
 `StructureCatalog::from_json2` and the explicit legacy provider adapter extend
 that baseline. See [the version/feature matrix](INTEROPERABILITY.md) for standard
 DSD/codelist integration, multiple datasets and bounded action semantics.
-Published 0.1.0 does not yet include these new APIs.
+These APIs are included in GitHub release v2.0.0 / Mooncakes module 0.2.0;
+module 0.1.0 is the earlier baseline.
 
 ## Common model
 

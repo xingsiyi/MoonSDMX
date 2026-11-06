@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased — 2026-11-06
+## 2.0.0 — 2026-11-06
+
+GitHub release `v2.0.0` maps to Mooncakes module `0.2.0` because the registry requires a `0.x.y` module version. Both identify the same source tree.
 
 - Add standard JSON2 StructureMessage data-access projection and external DSD/codelist/concept resolution, with authoritative value validation by component identity.
 - Add ordered multi-structure/dataset JSON2 and CSV2 containers, preserved A/R/D/I and validity, bounded atomic full-key application.
