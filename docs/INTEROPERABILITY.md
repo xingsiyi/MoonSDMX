@@ -1,7 +1,7 @@
-# SDMX interoperability contracts (MoonSDMX 2.0.0, 2026-11-06)
+# SDMX interoperability contracts (MoonSDMX 0.2.0, 2026-11-06)
 
-Project version `2.0.0` extends the earlier `0.1.0` single-message profile.
-GitHub release `v2.0.0` corresponds to Mooncakes module `0.2.0` under the registry's `0.x.y` version policy. These release versions are distinct from SDMX wire-format versions. This document distinguishes decoding a standard
+Project version `0.2.0` extends the earlier `0.1.0` single-message profile.
+Project release 0.2.0 is distinct from the SDMX wire-format versions below. This document distinguishes decoding a standard
 message, projecting metadata for data validation, and applying actions to state.
 
 ## Version and feature matrix

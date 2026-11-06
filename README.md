@@ -6,16 +6,14 @@
 
 ## 当前状态
 
-GitHub 发行版 `v2.0.0`，Mooncakes 模块 `xingsiyi/moonsdmx@0.2.0`，MIT 许可证；[公开仓库](https://github.com/xingsiyi/MoonSDMX) · [Mooncakes](https://mooncakes.io/docs/xingsiyi/moonsdmx) · [Linux/Windows CI](https://github.com/xingsiyi/MoonSDMX/actions)。CI 固定 compiler/core 0.10.16+b1a0e846e。
+版本 `0.2.0`，模块 `xingsiyi/moonsdmx`，MIT 许可证；[公开仓库](https://github.com/xingsiyi/MoonSDMX) · [Mooncakes](https://mooncakes.io/docs/xingsiyi/moonsdmx) · [Linux/Windows CI](https://github.com/xingsiyi/MoonSDMX/actions)。CI 固定 compiler/core 0.10.16+b1a0e846e。
 
-Mooncakes 当前要求模块版本为 `0.x.y`；本次 GitHub `v2.0.0` 对应模块 `0.2.0`，两者为同一代码。
-
-## 2.0.0 标准接入能力
+## 0.2.0 标准接入能力
 
 针对外部数据源接入，新增标准 **JSON 2.0 StructureMessage 的 DSD／代码表投影解析**、
 外部概念与代码表依赖解析、**多结构／多数据集顺序容器**、完整观测键下的 **A/R/D/I 动作处理**。
 新增 `decode_json1_provider` 显式适配 ECB 实际返回的 JSON1.0，保留动作及有效时间限定。
-本节 API 从项目版本 2.0.0 起提供；SDMX 格式版本仍按兼容矩阵分别标注。
+本节 API 从项目版本 0.2.0 起提供；SDMX 格式版本仍按兼容矩阵分别标注。
 
 - [功能兼容矩阵、DSD 接入步骤与真实提供方验证](docs/INTEROPERABILITY.md)
 - `moon run examples/standard_exchange --target native --deny-warn`：标准 DSD/代码表 → 两种不同结构 → CSV2/JSON2 往返 → 顺序应用动作。
@@ -131,8 +129,8 @@ moon run --target native cmd/moonsdmx -- reencode-json2 MESSAGE.json msg DEMO 20
 **结构一致的分区合并**（`Dataset::merge_partition`）；**保留单位与缺值的精确分组汇总**（`Dataset::grouped_totals`）。详见[功能、用途和边界](docs/NOVEMBER_FEATURES.md)，运行 `moon run examples/november --target native --deny-warn`。功能已包含于0.1.0，安装方式见上文。
 
 
-## 2.0.0 数据处理扩展
+## 0.2.0 数据处理扩展
 
 新增 **保留语义的指标透视表**、**显式缺期补全**，用途、限制和复杂度见 [功能文档](docs/EXPANSION_20261106.md)。
 从本仓库源码运行 `moon run examples/expansion --target native --deny-warn`。
-本节 API 已纳入项目版本 2.0.0。
+本节 API 已纳入项目版本 0.2.0。

@@ -1,6 +1,6 @@
 # MoonSDMX 增量功能：2026-11-06
 
-状态：本页 API 已纳入GitHub 发行版 v2.0.0，可安装对应的 Mooncakes 模块 xingsiyi/moonsdmx@0.2.0 或使用本目录源码。
+状态：本页 API 已纳入版本 0.2.0，可安装对应的 Mooncakes 模块 xingsiyi/moonsdmx@0.2.0 或使用本目录源码。
 
 ## 保留语义的指标透视表与显式缺期补全
 `Dataset::pivot_measure(measure, column_dimension)` 将一个维度展开为列，其余维度作为完整行键。
