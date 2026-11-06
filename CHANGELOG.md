@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — 2026-11-06
+
+- 保留语义的指标透视表。
+- 显式缺期补全。
+- 增加回归测试、独立可运行示例与 CI 示例步骤；详见 docs/EXPANSION_20261106.md。
+
 ## 0.1.0 — 2026-11-01
 
 - 结构一致的分区合并：Dataset::merge_partition

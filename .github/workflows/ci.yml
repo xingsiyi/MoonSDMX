@@ -60,6 +60,7 @@ jobs:
           ${{ matrix.moon }} run examples/energy_catalog --target native --deny-warn
           ${{ matrix.moon }} run examples/scale --target native --release --deny-warn
           ${{ matrix.moon }} run examples/november --target native --deny-warn
+          ${{ matrix.moon }} run examples/expansion --target native --deny-warn
       - name: Package and private-material hygiene
         run: |
           ${{ matrix.moon }} package

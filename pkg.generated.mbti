@@ -77,6 +77,7 @@ pub struct Dataset {
 } derive(@debug.Debug)
 pub fn Dataset::apply_local_plan(Self, LocalPlan) -> Self raise SdmxError
 pub fn Dataset::coverage(Self) -> DatasetCoverage raise SdmxError
+pub fn Dataset::densify_periods(Self, Array[String], Array[String?]) -> DensifyResult raise SdmxError
 pub fn Dataset::dimension_values(Self, String) -> Array[String] raise SdmxError
 pub fn Dataset::fingerprint(Self) -> String raise SdmxError
 pub fn Dataset::get(Self, Array[String]) -> Observation? raise SdmxError
@@ -87,6 +88,7 @@ pub fn Dataset::new(Structure, Array[Observation]) -> Self raise SdmxError
 pub fn Dataset::observations(Self) -> Array[Observation]
 pub fn Dataset::periods_contained(Self, PeriodWindow) -> Self raise SdmxError
 pub fn Dataset::periods_overlapping(Self, PeriodWindow) -> Self raise SdmxError
+pub fn Dataset::pivot_measure(Self, String, String) -> PivotTable raise SdmxError
 pub fn Dataset::project(Self, Structure, Array[String], Array[String]) -> Self raise SdmxError
 pub fn Dataset::recode(Self, Structure, Array[CodeMapping]) -> Self raise SdmxError
 pub fn Dataset::reorder_dimensions(Self, Structure) -> Self raise SdmxError
@@ -138,6 +140,11 @@ pub fn DecimalValue::is_integer(Self) -> Bool
 pub fn DecimalValue::not_equal(Self, Self) -> Bool
 pub fn DecimalValue::parse(String) -> Self raise SdmxError
 pub fn DecimalValue::to_repr(Self) -> @debug.Repr
+
+pub(all) struct DensifyResult {
+  dataset : Dataset
+  inserted_keys : Array[Array[String]]
+}
 
 pub(all) struct DimensionCoverage {
   id : String
@@ -286,6 +293,25 @@ pub fn PeriodWindow::equal(Self, Self) -> Bool
 pub fn PeriodWindow::new(PeriodValue, PeriodValue) -> Self raise SdmxError
 pub fn PeriodWindow::not_equal(Self, Self) -> Bool
 pub fn PeriodWindow::to_repr(Self) -> @debug.Repr
+
+pub(all) struct PivotCell {
+  value : String?
+  attributes : Array[String?]
+}
+
+pub(all) struct PivotRow {
+  key : Array[String]
+  cells : Array[PivotCell?]
+}
+
+pub(all) struct PivotTable {
+  row_dimensions : Array[String]
+  column_dimension : String
+  column_values : Array[String]
+  measure : String
+  attribute_names : Array[String]
+  rows : Array[PivotRow]
+}
 
 pub(all) enum Representation {
   Text

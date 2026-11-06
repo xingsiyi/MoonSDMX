@@ -1,0 +1,5 @@
+import {
+  "xingsiyi/moonsdmx" @sdmx,
+}
+
+pkgtype(kind: "executable")
