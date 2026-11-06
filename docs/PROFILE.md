@@ -8,9 +8,18 @@ This implementation targets the fixed SDMX 3.0 data exchange specifications:
 The current upstream specifications also have 2.1 editions. Their added semantics
 are outside this profile. This library does not claim complete SDMX conformance.
 
+## API scopes (unreleased additions)
+
+The original `decode_json2` / `decode_csv2` APIs below retain their single
+Information-message contracts. New `decode_json2_bundle`, `decode_csv2_bundle`,
+`StructureCatalog::from_json2` and the explicit legacy provider adapter extend
+that baseline. See [the version/feature matrix](INTEROPERABILITY.md) for standard
+DSD/codelist integration, multiple datasets and bounded action semantics.
+Published 0.1.0 does not yet include these new APIs.
+
 ## Common model
 
-One identified structure and dataset per message; complete observation keys;
+The original single-message APIs use one identified structure and dataset; complete observation keys;
 scalar text, exact bounded decimal, integer, calendar-period and coded values;
 multiple measures; attributes attached to dataset/dataflow scope, a dimension
 combination, or the whole observation. A code list in a native structure is an
@@ -53,7 +62,7 @@ levels, and requires an explicit UTC prepared timestamp. It keeps the values,
 attachment relationships and supported annotations; it does not reproduce the
 original physical layout or descriptive metadata verbatim.
 
-Only Information messages are accepted. Multiple structures/datasets, error
+The original single-message API accepts Information only. Its multiple structures/datasets, error
 messages, dimensionGroup attributes, measure-specific attribute attachments,
 multi-valued/localized values, unsupported format facets, component annotations
 and component-value annotations are rejected. Descriptive links and display-only
@@ -68,7 +77,8 @@ Gregorian years 0001–9999, `YYYY`, `YYYY-S1/S2`, `YYYY-Q1..Q4`, `YYYY-MM`,
 years, date-times, and arbitrary time-range periods are unsupported. Intervals
 are half-open civil-day ranges; overlap and containment are separate queries.
 
-The local revision/plan API has its own explicit merge-present, replace and
-delete-exact semantics. It is not an implementation of SDMX action processing.
+The local revision/plan API keeps its own merge-present, replace and delete-exact semantics.
+The new ExchangeBundle applies supported full-key SDMX actions through a separate
+explicit pure-function API; full wildcard/group/measure-specific action forms remain unsupported.
 Authentication, registry lookups, HTTP, persistence transactions, conflict policy,
 unit conversion and statistical estimation belong to the host application.

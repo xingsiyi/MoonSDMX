@@ -8,6 +8,21 @@
 
 版本 `0.1.0`，模块 `xingsiyi/moonsdmx`，MIT 许可证；[公开仓库](https://github.com/xingsiyi/MoonSDMX) · [Mooncakes](https://mooncakes.io/docs/xingsiyi/moonsdmx) · [Linux/Windows CI](https://github.com/xingsiyi/MoonSDMX/actions)。CI 固定 compiler/core 0.10.16+b1a0e846e。
 
+## 标准接入增量（本地未发布）
+
+针对外部数据源接入，新增标准 **JSON 2.0 StructureMessage 的 DSD／代码表投影解析**、
+外部概念与代码表依赖解析、**多结构／多数据集顺序容器**、完整观测键下的 **A/R/D/I 动作处理**。
+新增 `decode_json1_provider` 显式适配 ECB 实际返回的 JSON1.0，保留动作及有效时间限定。
+新功能需使用当前源码，已发布 0.1.0 不包含这些 API。
+
+- [功能兼容矩阵、DSD 接入步骤与真实提供方验证](docs/INTEROPERABILITY.md)
+- `moon run examples/standard_exchange --target native --deny-warn`：标准 DSD/代码表 → 两种不同结构 → CSV2/JSON2 往返 → 顺序应用动作。
+- `python scripts/verify_standard_exchange.py CLI`：离线验证标准输入与多数据集。
+- `python scripts/verify_provider.py CLI`：下载并逐字段核对真实 ECB 响应；`--file RAW_FILE` 可离线复放。
+
+StructureMessage 是明确范围的数据校验投影，不是完整 Registry 实现；完整动作语义、
+通配键删除、复杂 DSD facets 和 SDMX-ML 结构导入仍有明确边界，详见兼容矩阵。
+
 ## 能力与生态价值
 
 | 能力 | 解决的问题 |
@@ -68,7 +83,7 @@ let restored = @sdmx.decode_json2(json, expected=Some(structure))
 assert_eq(restored.dataset().fingerprint(), data.fingerprint())
 ```
 
-接口见 `pkg.generated.mbti`，完整用法见 `examples/`。`Structure::from_profile_json` 使用本项目的 `moonsdmx.structure/1` 配置格式，**不是 SDMX Registry Structure Message 解析器**。
+接口见 `pkg.generated.mbti`，完整用法见 `examples/`。`Structure::from_profile_json` 使用本项目的 `moonsdmx.structure/1` 配置格式，是本地配置格式；标准 JSON2 StructureMessage 改用 `StructureCatalog::from_json2`，支持的 DSD 投影范围见兼容矩阵。
 
 ## 四个完整场景
 
@@ -98,7 +113,7 @@ moon run --target native cmd/moonsdmx -- reencode-json2 MESSAGE.json msg DEMO 20
 
 ## 保证与边界
 
-[支持范围](docs/PROFILE.md) 列出具体拒绝项。Information 交换与本地编辑分开，不将 SDMX Append/Replace/Delete 自动应用到存储。指纹和游标用于变化检测，不是身份认证。宿主负责授权、并发和持久化事务、业务冲突及单位转换。
+[支持范围](docs/PROFILE.md) 列出具体拒绝项。原有单消息 API 保持 Information 语义；新增 bundle API 保留 A/R/D/I，并由宿主显式调用纯函数 `apply` 处理完整观测键，按序暂存且失败不改原状态。有效时间限定、注释及通配/部分键等不支持自动应用的形式会明确拒绝。指纹和游标用于变化检测，不是身份认证。宿主负责授权、并发和持久化事务、业务冲突及单位转换。
 
 设 N 行、C 组件、D 维度、K 代码、P 页长，忽略字符串长度：构造/验证及转换约 O(NC)，索引 O(N)；确定性排序/指纹增加 O(N log N)；分页快照 O(N log N·D)，续页 O(log N·D+PC)；重编码还需 O(K log K) 域核查。字符与哈希处理按文本长度收费。输入、展开总文本、字段、代码、行列、注释引用及输出均有上限；完整结果占 O(NC) 内存。
 

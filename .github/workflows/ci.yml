@@ -3,6 +3,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      provider_check:
+        description: 'Download and verify a small real ECB JSON1 provider response'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -61,6 +66,12 @@ jobs:
           ${{ matrix.moon }} run examples/scale --target native --release --deny-warn
           ${{ matrix.moon }} run examples/november --target native --deny-warn
           ${{ matrix.moon }} run examples/expansion --target native --deny-warn
+          ${{ matrix.moon }} run examples/standard_exchange --target native --deny-warn
+      - name: Standard registry and multi-dataset exchange
+        run: python scripts/verify_standard_exchange.py _build/native/debug/build/cmd/moonsdmx/moonsdmx.exe
+      - name: Optional real provider interoperability
+        if: github.event_name == 'workflow_dispatch' && inputs.provider_check
+        run: python scripts/verify_provider.py _build/native/debug/build/cmd/moonsdmx/moonsdmx.exe
       - name: Package and private-material hygiene
         run: |
           ${{ matrix.moon }} package

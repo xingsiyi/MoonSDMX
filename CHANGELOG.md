@@ -2,6 +2,11 @@
 
 ## Unreleased — 2026-11-06
 
+- Add standard JSON2 StructureMessage data-access projection and external DSD/codelist/concept resolution, with authoritative value validation by component identity.
+- Add ordered multi-structure/dataset JSON2 and CSV2 containers, preserved A/R/D/I and validity, bounded atomic full-key application.
+- Add explicit legacy provider adapter, real ECB all-value replay verification, official-schema checked synthetic standard inputs, CLI and runnable integration example.
+- Publish the API/version compatibility matrix and explicit unsupported action/DSD semantics.
+
 - 保留语义的指标透视表。
 - 显式缺期补全。
 - 增加回归测试、独立可运行示例与 CI 示例步骤；详见 docs/EXPANSION_20261106.md。

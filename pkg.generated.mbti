@@ -8,7 +8,13 @@ import {
 // Values
 pub fn decode_csv2(Structure, String) -> DataMessage raise SdmxError
 
+pub fn decode_csv2_bundle(String, StructureCatalog, limits? : Limits) -> ExchangeBundle raise SdmxError
+
+pub fn decode_json1_provider(String, StructureRef, limits? : Limits) -> ExchangeBundle raise SdmxError
+
 pub fn decode_json2(String, expected? : Structure?, limits? : Limits) -> DataMessage raise SdmxError
+
+pub fn decode_json2_bundle(String, catalog? : StructureCatalog?, limits? : Limits) -> ExchangeBundle raise SdmxError
 
 // Errors
 pub(all) suberror SdmxError {
@@ -57,6 +63,18 @@ pub fn Component::required(Self) -> Bool
 pub fn Component::role(Self) -> Role
 pub fn Component::to_repr(Self) -> @debug.Repr
 
+pub(all) enum DataAction {
+  Information
+  Append
+  Replace
+  Delete
+} derive(Eq, @debug.Debug)
+pub fn DataAction::equal(Self, Self) -> Bool
+pub fn DataAction::format(Self) -> String
+pub fn DataAction::not_equal(Self, Self) -> Bool
+pub fn DataAction::parse(String) -> Self raise SdmxError
+pub fn DataAction::to_repr(Self) -> @debug.Repr
+
 pub struct DataMessage {
   // private fields
 } derive(@debug.Debug)
@@ -98,6 +116,7 @@ pub fn Dataset::snapshot_signature(Self) -> String raise SdmxError
 pub fn Dataset::sorted(Self) -> Self raise SdmxError
 pub fn Dataset::structure(Self) -> Structure
 pub fn Dataset::to_repr(Self) -> @debug.Repr
+pub fn Dataset::validate_external(Self, Structure) -> Self raise SdmxError
 pub fn Dataset::validate_frequency(Self, String) -> Unit raise SdmxError
 pub fn Dataset::validate_with(Self, Structure) -> Self raise SdmxError
 
@@ -155,6 +174,20 @@ pub(all) struct DimensionCoverage {
 pub fn DimensionCoverage::to_repr(Self) -> @debug.Repr
 
 type DimensionPredicate
+
+pub struct ExchangeBundle {
+  // private fields
+}
+pub fn ExchangeBundle::apply(Self, Map[String, Dataset]) -> Map[String, Dataset] raise SdmxError
+pub fn ExchangeBundle::datasets(Self) -> Array[ExchangeDataset]
+pub fn ExchangeBundle::encode_json2(Self, id~ : String, sender~ : String, prepared~ : String) -> String raise SdmxError
+
+pub struct ExchangeDataset {
+  // private fields
+}
+pub fn ExchangeDataset::action(Self) -> DataAction
+pub fn ExchangeDataset::message(Self) -> DataMessage
+pub fn ExchangeDataset::validity(Self) -> (String?, String?)
 
 pub(all) enum ExchangeKind {
   Dataflow
@@ -351,6 +384,13 @@ pub fn Structure::reference(Self) -> StructureRef
 pub fn Structure::time_index(Self) -> Int32?
 pub fn Structure::to_profile_json(Self) -> String raise SdmxError
 pub fn Structure::to_repr(Self) -> @debug.Repr
+
+pub struct StructureCatalog {
+  // private fields
+}
+pub fn StructureCatalog::from_json2(String, external? : Array[Self], limits? : Limits) -> Self raise SdmxError
+pub fn StructureCatalog::references(Self) -> Array[StructureRef] raise SdmxError
+pub fn StructureCatalog::resolve(Self, ExchangeKind, StructureRef) -> Structure raise SdmxError
 
 pub struct StructureRef {
   // private fields

@@ -1,6 +1,7 @@
 /_build/
 /.mooncakes/
 /.local/
+/_local/
 /.scratch/
 /target/
 *.zip

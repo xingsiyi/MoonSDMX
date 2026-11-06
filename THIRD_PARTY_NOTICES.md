@@ -21,3 +21,14 @@ as this project's own fixtures. All committed test data is original synthetic da
 The optional Windows compiler path adapter in `scripts/` reuses this workspace's
 original auxiliary adapter from MoonProcessLens, under MIT. It is build support only;
 no prior project's production MoonBit code or history is reused.
+
+
+Standard-interoperability additions (2026-11-06): registry/bundle/provider adapters
+are independently written MoonBit, based on the pinned SDMX-JSON 2.0 Structure/Data
+message specifications. `examples/data/registry-json2.json` and the embedded runnable
+example contain original synthetic artefacts. `verify_provider.py` reads a real
+European Central Bank public response under the provider's applicable terms;
+raw data, retrieval details and evidence stay in ignored `_local/`, and are not
+redistributed as project-created datasets. ECB JSON1 adapter validation is separate
+from native JSON2 conformance and authoritative DSD validation. No external
+implementation code, standard schema bundle or downloaded provider file is vendored.
