@@ -8,6 +8,24 @@ test "scoped deletion protects count, schema and original data" {
   ])
   let selection = Selection::new(dataset.structure(), [("REGION", ["US"])])
   assert_eq(dataset.select(selection).length(), 2)
+  let plan = dataset.plan_delete_selection(selection)
+  assert_eq(plan.length(), 2)
+  assert_eq(dataset.apply_local_plan(plan).length(), 1)
+  let changed = Dataset::new(structure, [
+    Observation::new(structure, ["US", "2024"], [Some("8")], [Some("USD"), None]),
+    dataset.observations()[1],
+    dataset.observations()[2],
+  ])
+  assert_eq(changed.select(selection).length(), 2)
+  assert_true(
+    try {
+      ignore(changed.apply_local_plan(plan))
+      false
+    } catch {
+      Conflict(..) => true
+      _ => false
+    },
+  )
   assert_true(
     try {
       ignore(dataset.delete_selection(selection, expected_count=1))

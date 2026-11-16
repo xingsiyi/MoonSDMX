@@ -115,6 +115,7 @@ pub fn Dataset::observations(Self) -> Array[Observation]
 pub fn Dataset::periods_contained(Self, PeriodWindow) -> Self raise SdmxError
 pub fn Dataset::periods_overlapping(Self, PeriodWindow) -> Self raise SdmxError
 pub fn Dataset::pivot_measure(Self, String, String) -> PivotTable raise SdmxError
+pub fn Dataset::plan_delete_selection(Self, Selection) -> LocalPlan raise SdmxError
 pub fn Dataset::project(Self, Structure, Array[String], Array[String]) -> Self raise SdmxError
 pub fn Dataset::recode(Self, Structure, Array[CodeMapping]) -> Self raise SdmxError
 pub fn Dataset::reorder_dimensions(Self, Structure) -> Self raise SdmxError

@@ -9,6 +9,36 @@ fn Selection::matches(self : Selection, row : Observation) -> Bool {
 }
 
 ///|
+/// Build a sealed withdrawal from exact rows matching a dimension selection.
+/// The resulting LocalPlan protects the complete source snapshot.
+pub fn Dataset::plan_delete_selection(
+  self : Dataset,
+  selection : Selection,
+) -> LocalPlan raise SdmxError {
+  let profile = self.structure.to_profile_json()
+  if profile != selection.signature || selection.predicates.is_empty() {
+    raise Invalid(
+      path="delete.selection",
+      reason="expected a restriction on the current structure",
+    )
+  }
+  let operations : Array[LocalOperation] = []
+  for row in self.rows {
+    if selection.matches(row) {
+      operations.push({
+        kind: DeleteExact,
+        key: row.key,
+        expected: Some(row),
+        measures: [],
+        attributes: [],
+        structure_profile: profile,
+      })
+    }
+  }
+  LocalPlan::new(self, operations)
+}
+
+///|
 /// Apply a host-supplied dimension selection as a scoped deletion.
 /// Require the expected match count and an explicit dimension restriction.
 pub fn Dataset::delete_selection(
