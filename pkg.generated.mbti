@@ -392,6 +392,7 @@ pub fn Role::to_repr(Self) -> @debug.Repr
 pub struct Selection {
   // private fields
 }
+pub fn Selection::intersect(Self, Self) -> Self raise SdmxError
 pub fn Selection::new(Structure, Array[(String, Array[String])]) -> Self raise SdmxError
 
 #derive(@debug.Debug)
