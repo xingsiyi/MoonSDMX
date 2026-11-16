@@ -1,26 +1,29 @@
 ///|
+#derive(@debug.Debug)
 pub(all) struct DimensionCoverage {
   id : String
   observed_values : Int32
   declared_codes : Int32?
   unseen_codes : Array[String]
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend DimensionCoverage with @debug.Debug::{to_repr}
 
 ///|
+#derive(@debug.Debug)
 pub(all) struct ValueCoverage {
   id : String
   reported : Int32
   omitted : Int32
   distinct_values : Int32
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend ValueCoverage with @debug.Debug::{to_repr}
 
 ///|
+#derive(@debug.Debug)
 pub struct DatasetCoverage {
   priv observations : Int32
   priv dimensions : Array[DimensionCoverage]
@@ -28,7 +31,7 @@ pub struct DatasetCoverage {
   priv attributes : Array[ValueCoverage]
   priv frequencies : Array[(String, Int32)]
   priv limits : Limits
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend DatasetCoverage with @debug.Debug::{to_repr}

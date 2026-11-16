@@ -1,8 +1,9 @@
 ///|
 /// An annotation object is retained as bounded canonical JSON, without fetching URLs.
+#derive(Eq, @debug.Debug)
 pub struct Annotation {
   priv content : String
-} derive(Eq, @debug.Debug)
+}
 
 ///|
 pub extend Annotation with Eq::{equal, not_equal}

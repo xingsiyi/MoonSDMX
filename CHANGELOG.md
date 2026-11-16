@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - 2026-11-16
+
+- 统计数据按维度安全撤回
+
 ## 0.2.0 — 2026-11-06
 
 - Add standard JSON2 StructureMessage data-access projection and external DSD/codelist/concept resolution, with authoritative value validation by component identity.

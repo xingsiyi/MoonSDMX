@@ -1,8 +1,9 @@
 ///|
+#derive(Eq, @debug.Debug)
 pub struct PeriodWindow {
   priv start_day : Int32
   priv end_day : Int32
-} derive(Eq, @debug.Debug)
+}
 
 ///|
 pub extend PeriodWindow with Eq::{equal, not_equal}

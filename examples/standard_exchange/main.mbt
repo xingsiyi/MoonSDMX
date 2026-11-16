@@ -18,7 +18,15 @@ fn main raise {
     Some("2.30"),
   ])
   assert_eq(result["dataflow:DEMO:FLOW_ALT(1.0)"].observations()[0].key(), ["B"])
+  let snapshot = result["dataflow:DEMO:FLOW(1.0)"]
+  let selection = @sdmx.Selection::new(snapshot.structure(), [("AREA", ["A"])])
+  let withdrawn = snapshot.delete_selection(
+    selection,
+    expected_count=snapshot.select(selection).length(),
+  )
+  assert_eq(withdrawn.length(), 0)
+  assert_eq(snapshot.length(), 1)
   println(
-    "Standard DSD/codelist resolution, distinct schema datasets and ordered actions retain exact values",
+    "Standard SDMX exchange and scoped local withdrawal retain consistent snapshots",
   )
 }

@@ -1,9 +1,10 @@
 ///|
+#derive(Eq, @debug.Debug)
 pub(all) enum ExchangeKind {
   Dataflow
   Datastructure
   Dataprovision
-} derive(Eq, @debug.Debug)
+}
 
 ///|
 pub extend ExchangeKind with Eq::{equal, not_equal}
@@ -32,13 +33,14 @@ pub fn ExchangeKind::parse(text : String) -> ExchangeKind raise SdmxError {
 
 ///|
 /// A dissemination message. Mutating SDMX actions are deliberately not applied.
+#derive(@debug.Debug)
 pub struct DataMessage {
   priv kind : ExchangeKind
   priv reference : StructureRef
   priv dataset : Dataset
   priv notes : Array[Annotation]
   priv row_notes : Map[String, Array[Int32]]
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend DataMessage with @debug.Debug::{to_repr}

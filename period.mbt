@@ -1,11 +1,12 @@
 ///|
+#derive(Eq, @debug.Debug)
 pub(all) enum Granularity {
   Annual
   HalfYear
   Quarterly
   Monthly
   Daily
-} derive(Eq, @debug.Debug)
+}
 
 ///|
 pub extend Granularity with Eq::{equal, not_equal}
@@ -14,12 +15,13 @@ pub extend Granularity with Eq::{equal, not_equal}
 pub extend Granularity with @debug.Debug::{to_repr}
 
 ///|
+#derive(Eq, @debug.Debug)
 pub struct PeriodValue {
   priv code : String
   priv granularity : Granularity
   priv start_day : Int32
   priv end_day : Int32
-} derive(Eq, @debug.Debug)
+}
 
 ///|
 pub extend PeriodValue with Eq::{equal, not_equal}

@@ -1,9 +1,10 @@
 ///|
+#derive(Eq, @debug.Debug)
 pub struct StructureRef {
   priv agency : String
   priv id : String
   priv version : String
-} derive(Eq, @debug.Debug)
+}
 
 ///|
 pub extend StructureRef with Eq::{equal, not_equal}

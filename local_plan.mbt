@@ -1,15 +1,17 @@
 ///|
 // These operations are explicitly local editing instructions, not SDMX actions.
+#derive(@debug.Debug)
 enum LocalChangeKind {
   MergePresent
   ReplaceObservation
   DeleteExact
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend LocalChangeKind with @debug.Debug::{to_repr}
 
 ///|
+#derive(@debug.Debug)
 pub struct LocalOperation {
   priv kind : LocalChangeKind
   priv key : Array[String]
@@ -17,7 +19,7 @@ pub struct LocalOperation {
   priv measures : Array[String?]
   priv attributes : Array[String?]
   priv structure_profile : String
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend LocalOperation with @debug.Debug::{to_repr}
@@ -167,12 +169,13 @@ pub fn LocalOperation::attributes(self : LocalOperation) -> Array[String?] {
 }
 
 ///|
+#derive(@debug.Debug)
 pub struct LocalPlan {
   priv base_signature : String
   priv structure_profile : String
   priv operations : Array[LocalOperation]
   priv limits : Limits
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend LocalPlan with @debug.Debug::{to_repr}

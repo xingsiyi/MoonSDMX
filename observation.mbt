@@ -40,11 +40,12 @@ fn validate_value(
 }
 
 ///|
+#derive(Eq, @debug.Debug)
 pub struct Observation {
   priv key : Array[String]
   priv measures : Array[String?]
   priv attributes : Array[String?]
-} derive(Eq, @debug.Debug)
+}
 
 ///|
 pub extend Observation with Eq::{equal, not_equal}

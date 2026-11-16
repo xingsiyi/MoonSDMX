@@ -1,10 +1,11 @@
 ///|
 // Revisions compare lexical component values: omission and numeric zero differ.
+#derive(Eq, @debug.Debug)
 pub struct FieldRevision {
   priv component : String
   priv before : String?
   priv after : String?
-} derive(Eq, @debug.Debug)
+}
 
 ///|
 pub extend FieldRevision with Eq::{equal, not_equal}
@@ -28,11 +29,12 @@ pub fn FieldRevision::after(self : FieldRevision) -> String? {
 }
 
 ///|
+#derive(@debug.Debug)
 pub struct ObservationRevision {
   priv key : Array[String]
   priv measures : Array[FieldRevision]
   priv attributes : Array[FieldRevision]
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend ObservationRevision with @debug.Debug::{to_repr}
@@ -66,13 +68,14 @@ pub fn ObservationRevision::attributes(
 }
 
 ///|
+#derive(@debug.Debug)
 pub struct DatasetRevision {
   priv structure_profile : String
   priv added : Array[Observation]
   priv removed : Array[Observation]
   priv changed : Array[ObservationRevision]
   priv limits : Limits
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend DatasetRevision with @debug.Debug::{to_repr}

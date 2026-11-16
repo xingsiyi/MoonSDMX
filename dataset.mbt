@@ -1,9 +1,10 @@
 ///|
+#derive(@debug.Debug)
 pub struct Dataset {
   priv structure : Structure
   priv rows : Array[Observation]
   priv index : Map[String, Int32]
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend Dataset with @debug.Debug::{to_repr}

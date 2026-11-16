@@ -1,4 +1,5 @@
 ///|
+#derive(@debug.Debug)
 pub struct Structure {
   priv reference : StructureRef
   priv dimensions : Array[Component]
@@ -6,7 +7,7 @@ pub struct Structure {
   priv attributes : Array[Component]
   priv positions : Map[String, Int32]
   priv limits : Limits
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend Structure with @debug.Debug::{to_repr}

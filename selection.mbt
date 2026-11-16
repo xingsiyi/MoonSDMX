@@ -56,20 +56,7 @@ pub fn Dataset::select(
       reason="selection was compiled for a different structure",
     )
   }
-  let rows : Array[Observation] = []
-  for row in self.rows {
-    let mut selected = true
-    for predicate in selection.predicates {
-      if !predicate.codes.contains(row.key[predicate.position]) {
-        selected = false
-        break
-      }
-    }
-    if selected {
-      rows.push(row)
-    }
-  }
-  Dataset::new(self.structure, rows)
+  Dataset::new(self.structure, self.rows.filter(row => selection.matches(row)))
 }
 
 ///|

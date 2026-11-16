@@ -1,8 +1,9 @@
 ///|
+#derive(@debug.Debug)
 pub struct CodeList {
   priv id : String
   priv labels : Map[String, String]
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend CodeList with @debug.Debug::{to_repr}
@@ -61,24 +62,26 @@ pub fn CodeList::entries(self : CodeList) -> Array[(String, String)] {
 }
 
 ///|
+#derive(@debug.Debug)
 pub(all) enum Representation {
   Text
   Decimal
   Integer
   Period
   Coded(CodeList)
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend Representation with @debug.Debug::{to_repr}
 
 ///|
+#derive(@debug.Debug)
 pub(all) enum Role {
   Dimension
   TimeDimension
   Measure
   Attribute(Array[String])
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend Role with @debug.Debug::{to_repr}
@@ -92,13 +95,14 @@ fn detached_role(role : Role) -> Role {
 }
 
 ///|
+#derive(@debug.Debug)
 pub struct Component {
   priv id : String
   priv name : String
   priv role : Role
   priv representation : Representation
   priv required : Bool
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend Component with @debug.Debug::{to_repr}

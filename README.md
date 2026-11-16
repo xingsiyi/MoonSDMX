@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-版本 `0.2.0`，模块 `xingsiyi/moonsdmx`，MIT 许可证；[公开仓库](https://github.com/xingsiyi/MoonSDMX) · [Mooncakes](https://mooncakes.io/docs/xingsiyi/moonsdmx) · [Linux/Windows CI](https://github.com/xingsiyi/MoonSDMX/actions)。CI 固定 compiler/core 0.10.16+b1a0e846e。
+版本 `0.2.0`，模块 `xingsiyi/moonsdmx`，MIT 许可证；[公开仓库](https://github.com/xingsiyi/MoonSDMX) · [Mooncakes](https://mooncakes.io/docs/xingsiyi/moonsdmx) · [Linux/Windows CI](https://github.com/xingsiyi/MoonSDMX/actions)。CI 固定 compiler/core 0.10.20+65efd5b93。
 
 ## 0.2.0 标准接入能力
 
@@ -38,7 +38,7 @@ StructureMessage 是明确范围的数据校验投影，不是完整 Registry �
 
 ## 构建与运行
 
-验证环境：`moonc v0.10.16`、`moon 0.1.20261016`；仅依赖 core 和 `moonbitlang/x@0.4.49`。
+验证环境：`moonc v0.10.20`、`moon 0.1.20261104`；仅依赖 core 和 `moonbitlang/x@0.4.49`。
 
 ```sh
 moon update
@@ -134,3 +134,7 @@ moon run --target native cmd/moonsdmx -- reencode-json2 MESSAGE.json msg DEMO 20
 新增 **保留语义的指标透视表**、**显式缺期补全**，用途、限制和复杂度见 [功能文档](docs/EXPANSION_20261106.md)。
 从本仓库源码运行 `moon run examples/expansion --target native --deny-warn`。
 本节 API 已纳入项目版本 0.2.0。
+
+## 统计数据按维度安全撤回 (Unreleased)
+
+`Dataset::delete_selection` 复用 DSD 绑定选择器。调用方先用 `select` 预览，再用预期行数应用。结构不匹配、缺少限制或匹配数量变化时拒绝，原数据保留。适用于撤回指定地区、频率或系列的观测。匹配数量只是数量保护，完整快照前置条件由既有修订计划提供。

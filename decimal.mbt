@@ -3,10 +3,11 @@
 let decimal_bound : Int64 = 9000000000000000000L
 
 ///|
+#derive(Eq, @debug.Debug)
 pub struct DecimalValue {
   priv coefficient : Int64
   priv scale : Int32
-} derive(Eq, @debug.Debug)
+}
 
 ///|
 pub extend DecimalValue with Eq::{equal, not_equal}

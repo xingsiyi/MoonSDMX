@@ -1,10 +1,11 @@
 ///|
+#derive(Eq, @debug.Debug)
 pub(all) enum DataAction {
   Information
   Append
   Replace
   Delete
-} derive(Eq, @debug.Debug)
+}
 
 ///|
 pub extend DataAction with Eq::{equal, not_equal}

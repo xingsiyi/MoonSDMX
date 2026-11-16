@@ -1,10 +1,11 @@
 ///|
+#derive(@debug.Debug)
 pub(all) suberror SdmxError {
   Invalid(path~ : String, reason~ : String)
   Limit(resource~ : String, maximum~ : Int32)
   Unsupported(feature~ : String)
   Conflict(key~ : String, reason~ : String)
-} derive(@debug.Debug)
+}
 
 ///|
 pub extend SdmxError with @debug.Debug::{to_repr}
@@ -20,6 +21,7 @@ pub fn SdmxError::message(self : SdmxError) -> String {
 }
 
 ///|
+#derive(Eq, @debug.Debug)
 pub struct Limits {
   priv max_text : Int32
   priv max_rows : Int32
@@ -27,7 +29,7 @@ pub struct Limits {
   priv max_field : Int32
   priv max_codes : Int32
   priv max_output : Int32
-} derive(Eq, @debug.Debug)
+}
 
 ///|
 pub extend Limits with Eq::{equal, not_equal}

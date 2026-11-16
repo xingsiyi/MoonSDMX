@@ -8,10 +8,12 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 $moonCommand = (Get-Command moon -CommandType Application -ErrorAction Stop).Source
 $realCompiler = Join-Path (Split-Path -Parent $moonCommand) 'moonc.exe'
 $version = (& $moonCommand version --all | Out-String)
-if ($LASTEXITCODE -ne 0 -or $version -notmatch '(?m)^moonc v0\.10\.16(?:\+|\s)') {
-    throw 'This workaround is restricted to moonc v0.10.16; use normal moon commands for other versions.'
-}
+if ($LASTEXITCODE -ne 0) { throw 'Could not read the MoonBit toolchain version.' }
 if (-not $MoonArgs -or $MoonArgs.Count -eq 0) { $MoonArgs = @('version', '--all') }
+if ($version -notmatch '(?m)^moonc v0\.10\.16(?:\+|\s)') {
+    & $moonCommand @MoonArgs
+    exit $LASTEXITCODE
+}
 $compilerDriver = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 if (-not (Test-Path -LiteralPath $compilerDriver)) {
     throw 'Windows .NET Framework C# compiler is required for this local adapter.'
