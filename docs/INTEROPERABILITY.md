@@ -4,6 +4,10 @@ Project version `0.2.0` extends the earlier `0.1.0` single-message profile.
 Project release 0.2.0 is distinct from the SDMX wire-format versions below. This document distinguishes decoding a standard
 message, projecting metadata for data validation, and applying actions to state.
 
+For the current development changes and full 2.0.0 conformance target, see
+[group and measure attachment exchange](CONFORMANCE_2_0.md). The matrix below
+describes the released 0.2.0 baseline.
+
 ## Version and feature matrix
 
 | Feature | JSON Data 2.0.0 | CSV 2.0.0 | JSON Structure 2.0.0 / provider adapter |

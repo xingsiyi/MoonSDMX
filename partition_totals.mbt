@@ -55,8 +55,8 @@ priv struct TotalAccumulator {
 }
 
 ///|
-/// Explicit numeric measure only. All attributes and period frequency remain
-/// grouping keys, so units/quality/frequency are never silently combined.
+/// Group using attributes applicable to the selected measure and period frequency.
+/// Inapplicable attribute slots are returned as None.
 /// Caller chooses whether summing observations is meaningful for its metric.
 pub fn Dataset::grouped_totals(
   self : Dataset,
@@ -83,6 +83,9 @@ pub fn Dataset::grouped_totals(
   if selected < 0 {
     raise Invalid(path=measure, reason="unknown measure")
   }
+  let applies = self.structure.attributes.map(c => {
+    c.measure_ids.is_empty() || c.measure_ids.contains(measure)
+  })
   let groups : Array[TotalAccumulator] = []
   let positions : Map[String, Int32] = Map([])
   for row in self.rows {
@@ -92,7 +95,14 @@ pub fn Dataset::grouped_totals(
       None => None
     }
     let fields = dimensions.copy()
-    for value in row.attributes {
+    let applicable_attributes = row.attributes.mapi((i, value) => {
+      if applies[i] {
+        value
+      } else {
+        None
+      }
+    })
+    for value in applicable_attributes {
       fields.push(
         match value {
           None => "0"
@@ -109,7 +119,7 @@ pub fn Dataset::grouped_totals(
         positions[key] = i
         groups.push({
           dimensions,
-          attributes: row.attributes.copy(),
+          attributes: applicable_attributes,
           frequency,
           reported: 0,
           missing: 0,

@@ -1,5 +1,15 @@
 ///|
 #derive(@debug.Debug)
+pub(all) struct DimensionGroup {
+  id : String
+  dimensions : Array[String]
+}
+
+///|
+pub extend DimensionGroup with @debug.Debug::{to_repr}
+
+///|
+#derive(@debug.Debug)
 pub struct Structure {
   priv reference : StructureRef
   priv dimensions : Array[Component]
@@ -7,6 +17,7 @@ pub struct Structure {
   priv attributes : Array[Component]
   priv positions : Map[String, Int32]
   priv limits : Limits
+  priv groups : Array[DimensionGroup]
 }
 
 ///|
@@ -17,9 +28,13 @@ pub fn Structure::new(
   reference : StructureRef,
   components : Array[Component],
   limits~ : Limits = Limits::standard(),
+  groups~ : Array[DimensionGroup] = [],
 ) -> Structure raise SdmxError {
   if components.length() > limits.max_columns {
     raise Limit(resource="components", maximum=limits.max_columns)
+  }
+  if groups.length() > limits.max_columns {
+    raise Limit(resource="dimension groups", maximum=limits.max_columns)
   }
   let ids = components.map(c => c.id)
   unique_names(ids, "components")
@@ -62,6 +77,34 @@ pub fn Structure::new(
       reason="need dimensions, measures and at most one time dimension",
     )
   }
+  let definitions : Map[String, Array[String]] = Map([])
+  let group_keys : Map[String, Bool] = Map([])
+  let groups = groups.map(group => {
+    identifier(group.id, "group.id")
+    unique_names(group.dimensions, "group dimensions")
+    if ids.contains(group.id) ||
+      definitions.contains(group.id) ||
+      group.dimensions.is_empty() ||
+      group.dimensions.length() > dimensions.length() {
+      raise Invalid(
+        path=group.id,
+        reason="invalid or duplicate dimension group",
+      )
+    }
+    let names = dimensions
+      .map(c => c.id)
+      .filter(id => group.dimensions.contains(id))
+    if names.length() != group.dimensions.length() {
+      raise Invalid(path=group.id, reason="unknown dimension in group")
+    }
+    let token = framed_key(names)
+    if group_keys.contains(token) {
+      raise Invalid(path=group.id, reason="duplicate group dimension set")
+    }
+    group_keys[token] = true
+    definitions[group.id] = names
+    { id: group.id, dimensions: names, }
+  })
   for attribute in attributes {
     if attribute.role is Attribute(keys) {
       for key in keys {
@@ -73,8 +116,28 @@ pub fn Structure::new(
         }
       }
     }
+    for id in attribute.measure_ids {
+      if !measures.any(c => c.id == id) {
+        raise Invalid(
+          path=attribute.id,
+          reason="attachment references unknown measure: \{id}",
+        )
+      }
+    }
+    if attribute.group is Some(id) {
+      let names = definitions.get(id)
+      if !(attribute.role is Attribute(keys) &&
+        names is Some(dims) &&
+        keys.length() == dims.length() &&
+        keys.all(k => dims.contains(k))) {
+        raise Invalid(
+          path=attribute.id,
+          reason="group reference or dimensions disagree",
+        )
+      }
+    }
   }
-  { reference, dimensions, measures, attributes, positions, limits, }
+  { reference, dimensions, measures, attributes, positions, limits, groups, }
 }
 
 ///|
@@ -162,4 +225,29 @@ fn attachment_key(
     }
   }
   framed_key(values)
+}
+
+///|
+pub fn Structure::groups(self : Structure) -> Array[DimensionGroup] {
+  self.groups.map(group => {
+    id: group.id,
+    dimensions: group.dimensions.copy(),
+  })
+}
+
+///|
+fn same_measure_scope(
+  a : Component,
+  b : Component,
+  structure : Structure,
+) -> Bool {
+  a.measure_ids == b.measure_ids ||
+  (
+    a.measure_ids.is_empty() &&
+    b.measure_ids.length() == structure.measures.length()
+  ) ||
+  (
+    b.measure_ids.is_empty() &&
+    a.measure_ids.length() == structure.measures.length()
+  )
 }

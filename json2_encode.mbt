@@ -84,8 +84,15 @@ fn wire_component_json(
     _ => object["format"] = wire_format(component)
   }
   match component.role {
-    Attribute(_) =>
-      object["relationship"] = wire_relationship(component, structure)
+    Attribute(_) => {
+      let relation = wire_relationship(component, structure)
+      if !component.measure_ids.is_empty() && relation is Object(fields) {
+        fields["measures"] = Json::array(
+          component.measure_ids.map(Json::string),
+        )
+      }
+      object["relationship"] = relation
+    }
     Measure => ()
     _ => return object
   }
@@ -173,26 +180,79 @@ pub fn DataMessage::encode_json2(
   let measures : Array[Json] = structure.measures.map(c => {
     Json::object(wire_component_json(c, structure))
   })
-  let attributes : Array[Json] = structure.attributes.map(c => {
-    Json::object(wire_component_json(c, structure))
+  let observation_attributes : Array[Int32] = []
+  let group_attributes : Array[Int32] = []
+  for i, c in structure.attributes {
+    if c.role is Attribute(keys) &&
+      !keys.is_empty() &&
+      keys.length() < structure.dimensions.length() &&
+      (c.group is Some(_) || c.grouped) {
+      group_attributes.push(i)
+    } else {
+      observation_attributes.push(i)
+    }
+  }
+  fn attribute_schema(indices : Array[Int32]) -> Array[Json] {
+    indices.map(i => {
+      Json::object(wire_component_json(structure.attributes[i], structure))
+    })
+  }
+  let group_dimensions = group_attributes.map(i => {
+    let mask = Array::make(structure.dimensions.length(), false)
+    for pos in attachment_positions(structure, structure.attributes[i]) {
+      mask[pos] = true
+    }
+    mask
   })
+  let group_values : Map[String, Array[Json]] = Map([])
   let measure_indexes = structure.measures.map(code_indexes)
   let attribute_indexes = structure.attributes.map(code_indexes)
   let observations : Map[String, Json] = Map([])
   for row in self.dataset.rows {
-    let key = row.key
-      .mapi((i, value) => dimension_indexes[i][value].to_string())
-      .join(":")
+    let indexes = row.key.mapi((i, value) => {
+      dimension_indexes[i][value].to_string()
+    })
+    let key = indexes.join(":")
     let tuple : Array[Json] = []
     for i, component in structure.measures {
       tuple.push(
         wire_indexed_value(component, row.measures[i], measure_indexes[i]),
       )
     }
-    for i, component in structure.attributes {
+    for i in observation_attributes {
       tuple.push(
-        wire_indexed_value(component, row.attributes[i], attribute_indexes[i]),
+        wire_indexed_value(
+          structure.attributes[i],
+          row.attributes[i],
+          attribute_indexes[i],
+        ),
       )
+    }
+    for j, i in group_attributes {
+      if row.attributes[i] is Some(_) {
+        let partial = indexes
+          .mapi((k, index) => if group_dimensions[j][k] { index } else { "" })
+          .join(":")
+        let values = match group_values.get(partial) {
+          Some(values) => values
+          None => {
+            if group_values.length() >= structure.limits.max_rows {
+              raise Limit(
+                resource="dimension group keys",
+                maximum=structure.limits.max_rows,
+              )
+            }
+            let values = Array::make(group_attributes.length(), Json::null())
+            group_values[partial] = values
+            values
+          }
+        }
+        values[j] = wire_indexed_value(
+          structure.attributes[i],
+          row.attributes[i],
+          attribute_indexes[i],
+        )
+      }
     }
     for index in self.row_notes.get(row.key_token()).unwrap_or([]) {
       tuple.push(Json::number(index.to_double()))
@@ -213,8 +273,29 @@ pub fn DataMessage::encode_json2(
     ("links", Json::array([{ "urn": urn, "rel": relation }])),
     ("dimensions", { "observation": dimensions }),
     ("measures", { "observation": measures }),
-    ("attributes", { "observation": attributes }),
   ])
+  let attributes : Map[String, Json] = {
+    "observation": Json::array(attribute_schema(observation_attributes)),
+  }
+  if !group_attributes.is_empty() {
+    attributes["dimensionGroup"] = Json::array(
+      attribute_schema(group_attributes),
+    )
+  }
+  embedded["attributes"] = Json::object(attributes)
+  let dataset : Map[String, Json] = {
+    "structure": 0,
+    "links": [{ "urn": urn, "rel": relation }],
+    "action": "Information",
+    "observations": Json::object(observations),
+  }
+  if !group_values.is_empty() {
+    let groups : Map[String, Json] = Map([])
+    for key, values in group_values {
+      groups[key] = Json::array(values)
+    }
+    dataset["dimensionGroupAttributes"] = Json::object(groups)
+  }
   if !annotation_values.is_empty() {
     embedded["annotations"] = Json::array(annotation_values)
   }
@@ -227,14 +308,7 @@ pub fn DataMessage::encode_json2(
     },
     "data": {
       "structures": [Json::object(embedded)],
-      "dataSets": [
-        {
-          "structure": 0,
-          "links": [{ "urn": urn, "rel": relation }],
-          "action": "Information",
-          "observations": Json::object(observations),
-        },
-      ],
+      "dataSets": [Json::object(dataset)],
     },
   }
   canonical_json(document, structure.limits)

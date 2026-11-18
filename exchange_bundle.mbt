@@ -96,7 +96,9 @@ pub fn Dataset::validate_external(
       }
       _ => false
     }
-    if !compatible {
+    if !compatible ||
+      !same_measure_scope(c, target, expected) ||
+      (c.group is Some(_) && c.group != target.group) {
       raise Invalid(
         path=c.id,
         reason="DSD component role or attachment differs",
@@ -370,6 +372,7 @@ pub fn ExchangeBundle::apply(
       m.dataset.structure.reference,
       m.dataset.structure.components(),
       limits=self.limits,
+      groups=m.dataset.structure.groups,
     )
     let incoming = m.dataset.validate_with(bounded)
     let old = staged

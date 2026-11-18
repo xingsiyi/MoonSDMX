@@ -27,14 +27,11 @@ pub fn decode_csv2(
   if positions.get("ACTION") is Some(i) && i != 2 {
     raise Unsupported(feature="ACTION must follow STRUCTURE_ID")
   }
-  for c in structure.dimensions {
-    if !positions.contains(c.id) {
-      raise Invalid(path="CSV header", reason="missing dimension: \{c.id}")
-    }
-  }
+  let keys = structure.dimensions.map(c => positions.get(c.id))
+  let scoped = structure.attributes.map(c => attachment_index(structure, c))
+  let payloads : Array[(Array[String], Array[String?], Array[String?])] = []
   let mut kind : ExchangeKind? = None
   let mut reference : StructureRef? = None
-  let observations : Array[Observation] = []
   for n = 1; n < records.length(); n = n + 1 {
     let record = records[n]
     let row_kind = ExchangeKind::parse(record[0])
@@ -52,19 +49,65 @@ pub fn decode_csv2(
         feature="CSV action \{record[i]}: only Information is accepted",
       )
     }
-    let key : Array[String] = []
-    for c in structure.dimensions {
-      let value = record[positions[c.id]]
-      if value.is_empty() || value == "~" {
-        raise Unsupported(feature="partial or wildcard observation key")
+    let key = keys.map(i => i.map(p => record[p]).unwrap_or(""))
+    for i, value in key {
+      if value == "~" {
+        raise Unsupported(feature="wildcard observation key")
       }
-      key.push(value)
+      if !value.is_empty() {
+        validate_value(structure.dimensions[i], value, structure.limits)
+      }
     }
+    let complete = key.all(v => !v.is_empty())
     let measures = csv_values(structure.measures, positions, record)
     let attributes = csv_values(structure.attributes, positions, record)
-    observations.push(Observation::new(structure, key, measures, attributes)) catch {
-      error => raise Invalid(path="CSV row \{n + 1}", reason=error.message())
+    if !complete && measures.any(v => v is Some(_)) {
+      raise Invalid(
+        path="CSV row \{n + 1}",
+        reason="measure requires a complete key",
+      )
     }
+    let mut found = false
+    let covered = Array::make(key.length(), false)
+    for i, value in attributes {
+      if value is Some(text) {
+        let index = scoped[i]
+        if index.positions.length() != key.length() || !complete {
+          if !index.positions.all(p => !key[p].is_empty()) {
+            raise Invalid(
+              path=index.component.id,
+              reason="attribute missing a binding dimension",
+            )
+          }
+          index.put(key, text, structure.limits)
+          for p in index.positions {
+            covered[p] = true
+          }
+          found = true
+        }
+      }
+    }
+    if complete {
+      payloads.push((key, measures, attributes))
+    } else if !found ||
+      key.mapi((i, v) => !v.is_empty() && !covered[i]).any(v => v) {
+      raise Invalid(
+        path="CSV row \{n + 1}",
+        reason="partial key must identify the supplied attributes",
+      )
+    }
+  }
+  let observations = payloads.map(payload => {
+    let (key, measures, attributes) = payload
+    for i, index in scoped {
+      if index.positions.length() != key.length() {
+        attributes[i] = index.get(key)
+      }
+    }
+    Observation::new(structure, key, measures, attributes)
+  })
+  for index in scoped {
+    index.check_used()
   }
   // A header-only exchange has no source reference; use the caller's DSD.
   DataMessage::new(

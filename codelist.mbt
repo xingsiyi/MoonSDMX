@@ -102,6 +102,9 @@ pub struct Component {
   priv role : Role
   priv representation : Representation
   priv required : Bool
+  priv group : String?
+  priv measure_ids : Array[String]
+  priv grouped : Bool
 }
 
 ///|
@@ -114,13 +117,35 @@ pub fn Component::new(
   representation : Representation,
   name~ : String = "",
   required~ : Bool = false,
+  group~ : String? = None,
+  measure_ids~ : Array[String] = [],
 ) -> Component raise SdmxError {
   identifier(id, "component.id")
   check_field(name, Limits::standard(), "component.name")
   if role is Attribute(keys) {
     unique_names(keys, "attachment")
+    unique_names(measure_ids, "measure relationship")
+    if group is Some(group_id) {
+      identifier(group_id, "group relationship")
+    }
+  } else if group is Some(_) || !measure_ids.is_empty() {
+    raise Invalid(
+      path=id,
+      reason="only attributes have group or measure relationships",
+    )
   }
-  { id, name, role: detached_role(role), representation, required, }
+  let measure_ids = measure_ids.copy()
+  measure_ids.sort()
+  {
+    id,
+    name,
+    role: detached_role(role),
+    representation,
+    required,
+    group,
+    measure_ids,
+    grouped: false,
+  }
 }
 
 ///|
@@ -146,4 +171,15 @@ pub fn Component::representation(self : Component) -> Representation {
 ///|
 pub fn Component::required(self : Component) -> Bool {
   self.required
+}
+
+///|
+pub fn Component::group(self : Component) -> String? {
+  self.group
+}
+
+///|
+/// Empty means the attribute applies to all measures.
+pub fn Component::measure_ids(self : Component) -> Array[String] {
+  self.measure_ids.copy()
 }

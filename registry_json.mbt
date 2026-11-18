@@ -280,9 +280,6 @@ pub fn StructureCatalog::resolve(
     ["dimensionList", "measureList", "attributeList", "groups"],
     "dataStructureComponents",
   )
-  if !json_level(c, "groups").is_empty() {
-    raise Unsupported(feature="DSD group descriptors")
-  }
   let dl = j_object(j_required(c, "dimensionList"), "dimensionList")
   j_known(
     dl,
@@ -358,6 +355,15 @@ pub fn StructureCatalog::resolve(
     )
   }
   let names = positioned.map(p => p.1.id)
+  let groups : Array[DimensionGroup] = json_level(c, "groups").map(v => {
+    let g = j_object(v, "group")
+    let id = j_string(j_required(g, "id"), "group.id")
+    let dimensions = j_strings(
+      j_required(g, "groupDimensions"),
+      "groupDimensions",
+    )
+    { id, dimensions, }
+  })
   if c.get("attributeList") is Some(v) {
     let al = j_object(v, "attributeList")
     for v in json_level(al, "attributes") {
@@ -366,16 +372,89 @@ pub fn StructureCatalog::resolve(
       if status != "Conditional" && status != "Mandatory" {
         raise Unsupported(feature="attribute assignmentStatus")
       }
+      let usage = j_optional_string(d, "usage", "")
+      if usage != "" && usage != "mandatory" && usage != "optional" {
+        raise Invalid(path="usage", reason="expected mandatory or optional")
+      }
+      let relation = j_object(
+        j_required(d, "attributeRelationship"),
+        "attributeRelationship",
+      ).copy()
+      let group = match relation.get("group") {
+        None => None
+        Some(v) => Some(j_string(v, "attributeRelationship.group"))
+      }
+      let role = match group {
+        Some(id) => {
+          j_known(relation, ["group"], "attributeRelationship")
+          let mut keys : Array[String]? = None
+          for g in groups {
+            if g.id == id {
+              keys = Some(g.dimensions)
+              break
+            }
+          }
+          match keys {
+            Some(keys) => Attribute(keys)
+            None => raise Invalid(path=id, reason="unknown group descriptor")
+          }
+        }
+        None => {
+          if relation.contains("measures") {
+            raise Invalid(
+              path="attributeRelationship",
+              reason="use the DSD measureRelationship field",
+            )
+          }
+          if relation.get("areDimensionsOptional") is Some(flags) {
+            let keys = j_array(j_required(relation, "dimensions"), "dimensions")
+            let flags = j_array(flags, "areDimensionsOptional")
+            if flags.length() != keys.length() {
+              raise Invalid(
+                path="areDimensionsOptional",
+                reason="flags must align with dimensions",
+              )
+            }
+            for flag in flags {
+              if !(flag is True || flag is False) {
+                raise Invalid(
+                  path="areDimensionsOptional",
+                  reason="expected boolean flags",
+                )
+              }
+              if flag is True {
+                raise Unsupported(feature="optional attachment dimensions")
+              }
+            }
+            relation.remove("areDimensionsOptional")
+          }
+          json_relationship(Json::object(relation), names)
+        }
+      }
+      let measure_ids = match d.get("measureRelationship") {
+        None => []
+        Some(v) => relationship_measures(v)
+      }
       components.push(
         Component::new(
           j_string(j_required(d, "id"), "attribute.id"),
-          json_relationship(j_required(d, "attributeRelationship"), names),
+          role,
           self.registry_representation(d, Text),
-          required=j_optional_string(d, "assignmentStatus", "Conditional") ==
-            "Mandatory",
+          required=if usage == "" {
+            status == "Mandatory"
+          } else {
+            usage == "mandatory"
+          },
+          group~,
+          measure_ids~,
         ),
       )
     }
   }
-  Structure::new(StructureRef::parse(key), components, limits=self.limits)
+  Structure::new(
+    StructureRef::parse(key),
+    components,
+    limits=self.limits,
+    groups~,
+  )
 }

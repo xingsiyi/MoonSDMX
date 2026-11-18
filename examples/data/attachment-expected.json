@@ -1,0 +1,47 @@
+[
+  {
+    "key": [
+      "A",
+      "2026-01"
+    ],
+    "POWER": {
+      "value": "12.50",
+      "POWER_UNIT": "kW"
+    },
+    "ENERGY": {
+      "value": "300.00",
+      "ENERGY_UNIT": "kWh",
+      "QUALITY": "P"
+    }
+  },
+  {
+    "key": [
+      "A",
+      "2026-02"
+    ],
+    "POWER": {
+      "value": "13.00",
+      "POWER_UNIT": "kW"
+    },
+    "ENERGY": {
+      "value": "310.00",
+      "ENERGY_UNIT": "kWh",
+      "QUALITY": "E"
+    }
+  },
+  {
+    "key": [
+      "B",
+      "2026-01"
+    ],
+    "POWER": {
+      "value": "0.50",
+      "POWER_UNIT": "MW"
+    },
+    "ENERGY": {
+      "value": "5.00",
+      "ENERGY_UNIT": "MWh",
+      "QUALITY": "P"
+    }
+  }
+]

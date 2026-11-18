@@ -2,11 +2,15 @@
 
 **MoonBit 原生的结构感知多维数据交换库。** 在 JSON/CSV 与图表、分析和导入管道之间，保留“维度键—观测值—单位—质量状态—附着范围”的含义。
 
-例如，两个部门都提交 `120`，只有结合地区、指标、报告期、单位和质量标记才能使用。MoonSDMX 读取明确受限的 **SDMX-CSV 2.0.0 / SDMX-JSON Data Message 2.0.0**，展开索引与继承属性，校验代码表及完整键，提供选择、重编码、修订比较和稳定分页。核心独立使用 MoonBit 实现，无 Python/Java/JS 计算绑定。
+例如，两个部门都提交 `120`，只有结合地区、指标、报告期、单位和质量标记才能使用。MoonSDMX 面向 **SDMX-CSV 2.0.0 / SDMX-JSON 2.0.0**，展开索引与继承属性，校验代码表及完整键，提供选择、重编码、修订比较和稳定分页。核心独立使用 MoonBit 实现，无 Python/Java/JS 计算绑定。
 
 ## 当前状态
 
 版本 `0.2.0`，模块 `xingsiyi/moonsdmx`，MIT 许可证；[公开仓库](https://github.com/xingsiyi/MoonSDMX) · [Mooncakes](https://mooncakes.io/docs/xingsiyi/moonsdmx) · [Linux/Windows CI](https://github.com/xingsiyi/MoonSDMX/actions)。CI 固定 compiler/core 0.10.20+65efd5b93。
+
+## 完整符合性目标与复审增量
+
+最终目标是完整符合 SDMX-JSON／CSV 2.0.0。验收覆盖 Data Message 的读写和动作语义，以及关联的结构与参考元数据。当前开发代码新增固定维度组、适用度量、JSON 部分键和 CSV 部分键属性行。现阶段范围、后续验收门槛、标准输入和预期输出见 [SDMX 2.0.0 符合性目标](docs/CONFORMANCE_2_0.md)。上方 0.2.0 为此前的发布版本。
 
 ## 0.2.0 标准接入能力
 

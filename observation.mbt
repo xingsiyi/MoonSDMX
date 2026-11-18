@@ -142,3 +142,26 @@ pub fn Observation::value(
   }
   raise Invalid(path="component", reason="unknown component: \{id}")
 }
+
+///|
+/// Return only attributes that apply to the chosen measure, in structure order.
+pub fn Observation::attributes_for_measure(
+  self : Observation,
+  structure : Structure,
+  measure : String,
+) -> Array[(String, String?)] raise SdmxError {
+  if !structure.measures.any(c => c.id == measure) {
+    raise Invalid(path=measure, reason="unknown measure")
+  }
+  if self.attributes.length() != structure.attributes.length() {
+    raise Invalid(path=measure, reason="attribute count differs from structure")
+  }
+  let values = []
+  for i, attribute in structure.attributes {
+    if attribute.measure_ids.is_empty() ||
+      attribute.measure_ids.contains(measure) {
+      values.push((attribute.id, self.attributes[i]))
+    }
+  }
+  values
+}

@@ -18,6 +18,8 @@ priv struct JsonLayout {
   dataset_attributes : Array[WireComponent]
   series_attributes : Array[WireComponent]
   observation_attributes : Array[WireComponent]
+  group_attributes : Array[WireComponent]
+  ordered_dimensions : Array[WireComponent]
   notes : Array[Annotation]
 }
 
@@ -76,10 +78,6 @@ fn json_relationship(
     ["dataflow", "dimensions", "observation", "primaryMeasure", "measures"],
     "relationship",
   )
-  if object.get("measures") is Some(value) &&
-    !j_array(value, "measures").is_empty() {
-    raise Unsupported(feature="measure-specific attribute relationship")
-  }
   let mut keys : Array[String]? = None
   if object.contains("dataflow") {
     if !j_object(object["dataflow"], "relationship.dataflow").is_empty() {
@@ -109,6 +107,9 @@ fn json_relationship(
         path="relationship",
         reason="multiple observation attachment forms",
       )
+    }
+    if object.get("primaryMeasure") is Some(value) {
+      ignore(j_string(value, "relationship.primaryMeasure"))
     }
     if object.get("observation") is Some(value) &&
       !j_object(value, "relationship.observation").is_empty() {
@@ -365,17 +366,18 @@ fn json_layout(
     ["dataSet", "dimensionGroup", "series", "observation"],
     "attributes",
   )
-  if !json_level(attribute_object, "dimensionGroup").is_empty() {
-    raise Unsupported(feature="dimensionGroup attributes")
-  }
   let dimension_names = all_dimensions.map(w => w.component.id)
   fn read_attribute(value : Json) -> WireComponent raise SdmxError {
     let object = j_object(value, "attribute")
-    json_wire_component(
-      value,
-      json_relationship(j_required(object, "relationship"), dimension_names),
-      limits,
-    )
+    let relationship = j_required(object, "relationship")
+    let role = json_relationship(relationship, dimension_names)
+    let wire = json_wire_component(value, role, limits)
+    let relation = j_object(relationship, "relationship")
+    let measure_ids = match relation.get("measures") {
+      None => []
+      Some(v) => relationship_measures(v)
+    }
+    { ..wire, component: { ..wire.component, measure_ids, }, }
   }
   let dataset_attributes = json_level(attribute_object, "dataSet").map(
     read_attribute,
@@ -386,11 +388,26 @@ fn json_layout(
   let observation_attributes = json_level(attribute_object, "observation").map(
     read_attribute,
   )
+  let group_attributes = json_level(attribute_object, "dimensionGroup").map(v => {
+    let wire = read_attribute(v)
+    guard wire.component.role is Attribute(keys) &&
+      !keys.is_empty() &&
+      keys.length() < dimension_names.length() else {
+      raise Invalid(
+        path=wire.component.id,
+        reason="group attribute requires a proper partial key",
+      )
+    }
+    { ..wire, component: { ..wire.component, grouped: true, }, }
+  })
   let components = all_dimensions.map(w => w.component)
   for w in measures {
     components.push(w.component)
   }
-  for group in [dataset_attributes, series_attributes, observation_attributes] {
+  for
+    group in [
+      dataset_attributes, series_attributes, observation_attributes, group_attributes,
+    ] {
     for w in group {
       components.push(w.component)
     }
@@ -411,6 +428,22 @@ fn json_layout(
     dataset_attributes,
     series_attributes,
     observation_attributes,
+    group_attributes,
+    ordered_dimensions: all_dimensions,
     notes,
   }
+}
+
+///|
+fn relationship_measures(value : Json) -> Array[String] raise SdmxError {
+  let ids = j_strings(value, "measure relationship")
+  if ids.is_empty() {
+    raise Invalid(
+      path="measure relationship",
+      reason="expected at least one measure",
+    )
+  }
+  unique_names(ids, "measure relationship")
+  ids.sort()
+  ids
 }

@@ -18,26 +18,33 @@ fn json_index_key(
     raise Invalid(path="index key", reason="wrong dimension count")
   }
   for i, wire in wires {
-    let part = parts[i]
-    if part.is_empty() || part.length() > 7 {
-      raise Invalid(path="index", reason="invalid index length")
-    }
-    let mut n = 0
-    for ch in part {
-      if ch < '0' || ch > '9' {
-        raise Invalid(path="index", reason="expected unsigned decimal index")
-      }
-      n = n * 10 + ch.to_int() - 48
-    }
-    let values = wire.values.unwrap()
-    if n >= values.length() {
-      raise Invalid(
-        path=wire.component.id,
-        reason="dictionary index out of range",
-      )
-    }
-    key[wire.position] = values[n]
+    key[wire.position] = json_dimension_value(parts[i], wire)
   }
+}
+
+///|
+fn json_dimension_value(
+  part : StringView,
+  wire : WireComponent,
+) -> String raise SdmxError {
+  if part.is_empty() || part.length() > 7 {
+    raise Invalid(path="index", reason="invalid index length")
+  }
+  let mut n = 0
+  for ch in part {
+    if ch < '0' || ch > '9' {
+      raise Invalid(path="index", reason="expected unsigned decimal index")
+    }
+    n = n * 10 + ch.to_int() - 48
+  }
+  let values = wire.values.unwrap()
+  if n >= values.length() {
+    raise Invalid(
+      path=wire.component.id,
+      reason="dictionary index out of range",
+    )
+  }
+  values[n]
 }
 
 ///|
@@ -88,10 +95,6 @@ fn json_note_indices(
   object : Map[String, Json],
   notes : Array[Annotation],
 ) -> Array[Int32] raise SdmxError {
-  if object.get("dimensionGroupAttributes") is Some(value) &&
-    !j_object(value, "dimensionGroupAttributes").is_empty() {
-    raise Unsupported(feature="dimensionGroupAttributes")
-  }
   let values = json_level(object, "annotations")
   if values.length() > 1024 {
     raise Limit(resource="annotation references", maximum=1024)
@@ -131,6 +134,7 @@ fn json_observations(
   layout : JsonLayout,
   prefix : Array[String],
   inherited : Array[String?],
+  groups : Array[AttachmentIndex],
   rows : Array[Observation],
   inherited_notes : Array[Int32],
   bindings : Array[(Array[String], Array[Int32])],
@@ -185,6 +189,13 @@ fn json_observations(
         },
       )
     }
+    for i, index in groups {
+      let value = match index.get(key) {
+        Some(v) => Some(v)
+        None => layout.group_attributes[i].fallback
+      }
+      attributes.push(value)
+    }
     rows.push(Observation::new(layout.structure, key, measures, attributes))
   }
 }
@@ -228,6 +239,7 @@ pub fn decode_json2(
       feature="JSON mutating action: only Information is accepted",
     )
   }
+  let groups = json_group_values(object, layout, limits)
   let dataset_notes = json_note_indices(object, layout.notes)
   let prefix = Array::make(layout.structure.dimensions.length(), "")
   for wire in layout.dataset_dimensions {
@@ -262,7 +274,8 @@ pub fn decode_json2(
           attributes.push(v)
         }
         json_observations(
-          object, layout, key, attributes, rows, notes, bindings, references, limits,
+          object, layout, key, attributes, groups, rows, notes, bindings, references,
+          limits,
         )
       }
     }
@@ -275,18 +288,99 @@ pub fn decode_json2(
         )
       }
       json_observations(
-        object, layout, prefix, inherited, rows, dataset_notes, bindings, references,
-        limits,
+        object, layout, prefix, inherited, groups, rows, dataset_notes, bindings,
+        references, limits,
       )
     }
+  }
+  for group in groups {
+    group.check_used()
   }
   let dataset = Dataset::new(layout.structure, rows)
   let validated = match expected {
     None => dataset
+    Some(s) if !groups.is_empty() || !s.groups.is_empty() =>
+      dataset.validate_external(s)
     Some(s) => dataset.validate_with(s)
+  }
+  let notes = match expected {
+    Some(s) if !groups.is_empty() || !s.groups.is_empty() =>
+      bindings.map(binding => {
+        let row = dataset.index[framed_key(binding.0)]
+        (validated.rows[row].key, binding.1)
+      })
+    _ => bindings
   }
   DataMessage::new(layout.kind, layout.reference, validated).with_annotations(
     layout.notes,
-    bindings,
+    notes,
   )
+}
+
+///|
+fn json_group_values(
+  dataset : Map[String, Json],
+  layout : JsonLayout,
+  limits : Limits,
+) -> Array[AttachmentIndex] raise SdmxError {
+  let groups = layout.group_attributes.map(w => {
+    attachment_index(layout.structure, w.component)
+  })
+  let values = match dataset.get("dimensionGroupAttributes") {
+    None | Some(Null) => return groups
+    Some(value) => j_object(value, "dimensionGroupAttributes")
+  }
+  if values.length() > limits.max_rows {
+    raise Limit(resource="dimension group keys", maximum=limits.max_rows)
+  }
+  for encoded, value in values {
+    let parts = encoded.split(":").collect()
+    if parts.length() != layout.ordered_dimensions.length() {
+      raise Invalid(path=encoded, reason="wrong group key dimension count")
+    }
+    let key = layout.ordered_dimensions.mapi((i, wire) => {
+      if parts[i].is_empty() {
+        ""
+      } else {
+        json_dimension_value(parts[i], wire)
+      }
+    })
+    let populated = key.filter(v => !v.is_empty()).length()
+    if populated == 0 || populated == key.length() {
+      raise Invalid(path=encoded, reason="group key must be partial")
+    }
+    let tuple = j_array(value, "dimension group tuple")
+    if tuple.length() > groups.length() {
+      raise Unsupported(feature="dimension group annotations")
+    }
+    if groups.is_empty() {
+      raise Invalid(
+        path=encoded,
+        reason="no dimension group attributes declared",
+      )
+    }
+    for i, index in groups {
+      let matches = index.positions.length() == populated &&
+        index.positions.all(p => !key[p].is_empty())
+      let explicit = i < tuple.length() && !(tuple[i] is Null)
+      if explicit && !matches {
+        raise Invalid(
+          path=index.component.id,
+          reason="group key disagrees with attribute relationship",
+        )
+      }
+      if matches {
+        let wire = layout.group_attributes[i]
+        let decoded = if explicit {
+          json_component_value(tuple[i], wire)
+        } else {
+          wire.fallback
+        }
+        if decoded is Some(text) {
+          index.put(key, text, limits)
+        }
+      }
+    }
+  }
+  groups
 }

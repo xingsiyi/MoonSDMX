@@ -25,7 +25,7 @@ pub fn Structure::to_profile_json(self : Structure) -> String raise SdmxError {
         Measure => ("measure", [])
         Attribute(keys) => ("attribute", keys)
       }
-      {
+      let object : Map[String, Json] = {
         "id": c.id,
         "name": c.name,
         "role": role,
@@ -33,15 +33,30 @@ pub fn Structure::to_profile_json(self : Structure) -> String raise SdmxError {
         "required": Json::boolean(c.required),
         "representation": representation_json(c.representation),
       }
+      if c.group is Some(id) {
+        object["group"] = Json::string(id)
+      }
+      if !c.measure_ids.is_empty() {
+        object["measureRelationship"] = Json::array(
+          c.measure_ids.map(Json::string),
+        )
+      }
+      Json::object(object)
     })
-  canonical_json(
-    {
-      "profile": "moonsdmx.structure/1",
-      "reference": self.reference.format(),
-      "components": components,
-    },
-    self.limits,
-  )
+  let profile : Map[String, Json] = {
+    "profile": "moonsdmx.structure/1",
+    "reference": self.reference.format(),
+    "components": components,
+  }
+  if !self.groups.is_empty() {
+    profile["groups"] = Json::array(
+      self.groups.map(group => {
+        "id": group.id,
+        "dimensions": group.dimensions,
+      }),
+    )
+  }
+  canonical_json(Json::object(profile), self.limits)
 }
 
 ///|
@@ -88,7 +103,11 @@ pub fn Structure::from_profile_json(
   limits~ : Limits = Limits::standard(),
 ) -> Structure raise SdmxError {
   let object = j_object(parse_bounded_json(text, limits), "structure profile")
-  j_known(object, ["profile", "reference", "components"], "structure profile")
+  j_known(
+    object,
+    ["profile", "reference", "components", "groups"],
+    "structure profile",
+  )
   if j_string(j_required(object, "profile"), "profile") !=
     "moonsdmx.structure/1" {
     raise Unsupported(feature="structure profile version")
@@ -104,7 +123,10 @@ pub fn Structure::from_profile_json(
     let object = j_object(value, "component")
     j_known(
       object,
-      ["id", "name", "role", "attachment", "required", "representation"],
+      [
+        "id", "name", "role", "attachment", "required", "representation", "group",
+        "measureRelationship",
+      ],
       "component",
     )
     let tag = j_string(j_required(object, "role"), "role")
@@ -131,7 +153,19 @@ pub fn Structure::from_profile_json(
       read_representation(j_required(object, "representation"), limits),
       name=j_optional_string(object, "name", ""),
       required=j_optional_bool(object, "required", false),
+      group=object.get("group").map(v => j_string(v, "group")),
+      measure_ids=object
+        .get("measureRelationship")
+        .map(relationship_measures)
+        .unwrap_or([]),
     )
   })
-  Structure::new(reference, components, limits~)
+  let groups : Array[DimensionGroup] = json_level(object, "groups").map(v => {
+    let g = j_object(v, "group")
+    {
+      id: j_string(j_required(g, "id"), "group.id"),
+      dimensions: j_strings(j_required(g, "dimensions"), "group dimensions"),
+    }
+  })
+  Structure::new(reference, components, limits~, groups~)
 }

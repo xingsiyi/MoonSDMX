@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased - 2026-11-16
+## Unreleased - 2026-11-18
+
+- Resolve fixed DSD dimension groups and attribute-to-measure relationships.
+- Read and write JSON2 grouped scalar attributes; join CSV2 partial-key Information rows to observations.
+- Add measure-aware attribute access and grouping, standard fixtures, and a full 2.0.0 conformance plan.
 
 - 统计数据按维度安全撤回
 

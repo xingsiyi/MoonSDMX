@@ -19,6 +19,8 @@ fn transform_same_component(
   if a.id != b.id ||
     a.name != b.name ||
     a.required != b.required ||
+    a.group != b.group ||
+    a.measure_ids != b.measure_ids ||
     !transform_same_role(a.role, b.role) {
     raise Invalid(
       path=b.id,

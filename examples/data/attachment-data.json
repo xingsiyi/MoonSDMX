@@ -1,0 +1,169 @@
+{
+  "meta": {
+    "schema": "https://json.sdmx.org/2.0.0/sdmx-json-data-schema.json",
+    "id": "attachment-data",
+    "sender": {
+      "id": "DEMO"
+    },
+    "prepared": "2026-11-06T00:00:00Z"
+  },
+  "data": {
+    "structures": [
+      {
+        "links": [
+          {
+            "urn": "urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=DEMO:FLOW(1.0)",
+            "rel": "dataflow"
+          }
+        ],
+        "dimensions": {
+          "series": [
+            {
+              "id": "AREA",
+              "keyPosition": 0,
+              "values": [
+                {
+                  "id": "A",
+                  "name": "A"
+                },
+                {
+                  "id": "B",
+                  "name": "B"
+                }
+              ]
+            }
+          ],
+          "observation": [
+            {
+              "id": "TIME_PERIOD",
+              "keyPosition": 1,
+              "roles": [
+                "TIME_PERIOD"
+              ],
+              "values": [
+                {
+                  "id": "2026-01",
+                  "name": "2026-01"
+                },
+                {
+                  "id": "2026-02",
+                  "name": "2026-02"
+                }
+              ]
+            }
+          ]
+        },
+        "measures": {
+          "observation": [
+            {
+              "id": "POWER",
+              "format": {
+                "dataType": "Decimal"
+              }
+            },
+            {
+              "id": "ENERGY",
+              "format": {
+                "dataType": "Decimal"
+              }
+            }
+          ]
+        },
+        "attributes": {
+          "dimensionGroup": [
+            {
+              "id": "POWER_UNIT",
+              "relationship": {
+                "dimensions": [
+                  "AREA"
+                ],
+                "measures": [
+                  "POWER"
+                ]
+              },
+              "values": [
+                {
+                  "id": "kW",
+                  "name": "kW"
+                },
+                {
+                  "id": "MW",
+                  "name": "MW"
+                }
+              ]
+            },
+            {
+              "id": "ENERGY_UNIT",
+              "relationship": {
+                "dimensions": [
+                  "AREA"
+                ],
+                "measures": [
+                  "ENERGY"
+                ]
+              }
+            }
+          ],
+          "observation": [
+            {
+              "id": "QUALITY",
+              "relationship": {
+                "observation": {},
+                "measures": [
+                  "ENERGY"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "dataSets": [
+      {
+        "links": [
+          {
+            "urn": "urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=DEMO:FLOW(1.0)",
+            "rel": "dataflow"
+          }
+        ],
+        "structure": 0,
+        "action": "Information",
+        "dimensionGroupAttributes": {
+          "0:": [
+            0,
+            "kWh"
+          ],
+          "1:": [
+            1,
+            "MWh"
+          ]
+        },
+        "series": {
+          "0": {
+            "observations": {
+              "0": [
+                "12.50",
+                "300.00",
+                "P"
+              ],
+              "1": [
+                "13.00",
+                "310.00",
+                "E"
+              ]
+            }
+          },
+          "1": {
+            "observations": {
+              "0": [
+                "0.50",
+                "5.00",
+                "P"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

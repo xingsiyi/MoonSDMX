@@ -166,9 +166,19 @@ pub fn Dataset::validate_with(
       (Attribute(a), Attribute(b)) => a == b
       _ => false
     }
-    if !compatible {
+    if !compatible ||
+      c.group != right[i].group ||
+      !same_measure_scope(c, right[i], structure) {
       raise Invalid(path=c.id, reason="component roles/attachments differ")
     }
+  }
+  if self.structure.groups.length() != structure.groups.length() ||
+    !self.structure.groups.all(g => {
+      structure.groups.any(other => {
+        other.id == g.id && other.dimensions == g.dimensions
+      })
+    }) {
+    raise Invalid(path="structure", reason="dimension group descriptors differ")
   }
   if self.structure.reference != structure.reference {
     raise Invalid(path="structure", reason="reference differs")

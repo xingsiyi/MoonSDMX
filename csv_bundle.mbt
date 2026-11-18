@@ -1,7 +1,7 @@
 ///|
 /// Decode contiguous CSV2 source/action groups in original order. Resolve DSDs
-/// from a standard StructureCatalog; heterogeneous columns must be empty when
-/// not part of the current DSD. Complete keys only, labels=id, scalar values.
+/// from a standard StructureCatalog. Heterogeneous columns must be empty when
+/// outside the current DSD. Uses scalar labels=id columns.
 pub fn decode_csv2_bundle(
   text : String,
   catalog : StructureCatalog,
@@ -65,17 +65,13 @@ pub fn decode_csv2_bundle(
         }
       }
       for c in components {
-        normalized.push(
-          match positions.get(c.id) {
-            Some(i) => row[i]
-            None =>
-              if c.role is Dimension || c.role is TimeDimension {
-                raise Invalid(path=c.id, reason="missing CSV dimension")
-              } else {
-                ""
-              }
-          },
-        )
+        let value = positions.get(c.id).map(i => row[i]).unwrap_or("")
+        if action != Information &&
+          value.is_empty() &&
+          (c.role is Dimension || c.role is TimeDimension) {
+          raise Unsupported(feature="partial-key CSV mutation")
+        }
+        normalized.push(value)
       }
       group.push(normalized)
       at += 1

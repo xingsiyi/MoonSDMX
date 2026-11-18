@@ -59,9 +59,11 @@ pub fn CodeMapping::new(String, Array[(String, String)], limits? : Limits) -> Se
 pub struct Component {
   // private fields
 }
+pub fn Component::group(Self) -> String?
 pub fn Component::id(Self) -> String
+pub fn Component::measure_ids(Self) -> Array[String]
 pub fn Component::name(Self) -> String
-pub fn Component::new(String, Role, Representation, name? : String, required? : Bool) -> Self raise SdmxError
+pub fn Component::new(String, Role, Representation, name? : String, required? : Bool, group? : String?, measure_ids? : Array[String]) -> Self raise SdmxError
 pub fn Component::representation(Self) -> Representation
 pub fn Component::required(Self) -> Bool
 pub fn Component::role(Self) -> Role
@@ -186,6 +188,13 @@ pub(all) struct DimensionCoverage {
 }
 pub fn DimensionCoverage::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
+pub(all) struct DimensionGroup {
+  id : String
+  dimensions : Array[String]
+}
+pub fn DimensionGroup::to_repr(Self) -> @debug.Repr
+
 type DimensionPredicate
 
 pub struct ExchangeBundle {
@@ -291,6 +300,7 @@ pub struct Observation {
   // private fields
 }
 pub fn Observation::attributes(Self) -> Array[String?]
+pub fn Observation::attributes_for_measure(Self, Structure, String) -> Array[(String, String?)] raise SdmxError
 pub fn Observation::equal(Self, Self) -> Bool
 pub fn Observation::key(Self) -> Array[String]
 pub fn Observation::key_token(Self) -> String
@@ -406,8 +416,9 @@ pub fn Structure::dimension_index(Self, String) -> Int32?
 pub fn Structure::dimensions(Self) -> Array[Component]
 pub fn Structure::fingerprint(Self) -> String raise SdmxError
 pub fn Structure::from_profile_json(String, limits? : Limits) -> Self raise SdmxError
+pub fn Structure::groups(Self) -> Array[DimensionGroup]
 pub fn Structure::measures(Self) -> Array[Component]
-pub fn Structure::new(StructureRef, Array[Component], limits? : Limits) -> Self raise SdmxError
+pub fn Structure::new(StructureRef, Array[Component], limits? : Limits, groups? : Array[DimensionGroup]) -> Self raise SdmxError
 pub fn Structure::reference(Self) -> StructureRef
 pub fn Structure::time_index(Self) -> Int32?
 pub fn Structure::to_profile_json(Self) -> String raise SdmxError
