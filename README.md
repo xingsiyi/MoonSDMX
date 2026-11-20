@@ -142,3 +142,7 @@ moon run --target native cmd/moonsdmx -- reencode-json2 MESSAGE.json msg DEMO 20
 ## 统计数据按维度安全撤回 (Unreleased)
 
 `Dataset::delete_selection` 复用 DSD 绑定选择器。调用方先用 `select` 预览，再用预期行数应用。结构不匹配、缺少限制或匹配数量变化时拒绝，原数据保留。适用于撤回指定地区、频率或系列的观测。匹配数量只是数量保护，完整快照前置条件由既有修订计划提供。
+
+## November additions
+
+Use `Dataset::attached_values` to enumerate distinct attribute scopes and `attached_value` to look up units by their declared dimensions. `encode_grouped_csv2` writes partial-key Information rows and then full observations. An external DSD supplies scope and measure applicability when these files are read. `DataMessage::select` preserves and reindexes surviving observation annotations. Standalone group values, group annotations and partial-key mutations remain tracked in the compatibility plan.

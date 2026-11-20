@@ -90,10 +90,12 @@ pub fn DataMessage::annotations(Self) -> Array[Annotation]
 pub fn DataMessage::annotations_for(Self, Array[String]) -> Array[Annotation] raise SdmxError
 pub fn DataMessage::dataset(Self) -> Dataset
 pub fn DataMessage::encode_csv2(Self) -> String raise SdmxError
+pub fn DataMessage::encode_grouped_csv2(Self) -> String raise SdmxError
 pub fn DataMessage::encode_json2(Self, id~ : String, sender~ : String, prepared~ : String) -> String raise SdmxError
 pub fn DataMessage::kind(Self) -> ExchangeKind
 pub fn DataMessage::new(ExchangeKind, StructureRef, Dataset) -> Self raise SdmxError
 pub fn DataMessage::reference(Self) -> StructureRef
+pub fn DataMessage::select(Self, Selection) -> Self raise SdmxError
 pub fn DataMessage::to_repr(Self) -> @debug.Repr
 pub fn DataMessage::with_annotations(Self, Array[Annotation], Array[(Array[String], Array[Int32])]) -> Self raise SdmxError
 pub fn DataMessage::without_annotations(Self) -> Self
@@ -103,6 +105,8 @@ pub struct Dataset {
   // private fields
 }
 pub fn Dataset::apply_local_plan(Self, LocalPlan) -> Self raise SdmxError
+pub fn Dataset::attached_value(Self, String, Array[(String, String)]) -> String? raise SdmxError
+pub fn Dataset::attached_values(Self, String) -> Array[ScopedAttributeValue] raise SdmxError
 pub fn Dataset::coverage(Self) -> DatasetCoverage raise SdmxError
 pub fn Dataset::delete_selection(Self, Selection, expected_count~ : Int32) -> Self raise SdmxError
 pub fn Dataset::densify_periods(Self, Array[String], Array[String?]) -> DensifyResult raise SdmxError
@@ -398,6 +402,15 @@ pub(all) enum Role {
   Attribute(Array[String])
 }
 pub fn Role::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) struct ScopedAttributeValue {
+  key : Array[(String, String)]
+  value : String
+}
+pub fn ScopedAttributeValue::equal(Self, Self) -> Bool
+pub fn ScopedAttributeValue::not_equal(Self, Self) -> Bool
+pub fn ScopedAttributeValue::to_repr(Self) -> @debug.Repr
 
 pub struct Selection {
   // private fields
